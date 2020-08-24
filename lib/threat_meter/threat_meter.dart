@@ -10,6 +10,9 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:the_yagi_project/threat_meter/threat_meter_thumb_shape.dart';
+import 'package:the_yagi_project/threat_meter/threat_meter_tick_mark_shape.dart';
+import 'package:the_yagi_project/threat_meter/threat_meter_track_shape.dart';
 
 /// A callback that formats a numeric value from a [ThreatMeter] widget.
 ///
@@ -18,12 +21,27 @@ import 'package:flutter/widgets.dart';
 ///  * [ThreatMeter.semanticFormatterCallback], which shows an example use case.
 typedef SemanticFormatterCallback = String Function(double value);
 
+/// [ThreatMeter] uses this callback to paint the value indicator on the overlay.
+///
+/// Since the value indicator is painted on the Overlay; this method paints the
+/// value indicator in a [RenderBox] that appears in the [Overlay].
+typedef PaintValueIndicator = void Function(PaintingContext context, Offset offset);
+
 enum _SliderType { material, adaptive }
 
 class ThreatMeter extends StatefulWidget {
   const ThreatMeter({
     Key key,
+    @required this.value,
     @required this.onChanged,
+    this.onChangeStart,
+    this.onChangeEnd,
+    this.focusNode,
+    this.label,
+    this.autofocus = false,
+    this.mouseCursor,
+    this.semanticFormatterCallback,
+    this.thumbShape,
   }) : _sliderType = _SliderType.material,
         super(key: key);
 
@@ -36,14 +54,23 @@ class ThreatMeter extends StatefulWidget {
   /// The target platform is based on the current [Theme]: [ThemeData.platform].
   const ThreatMeter.adaptive({
     Key key,
+    @required this.value,
     @required this.onChanged,
+    this.onChangeStart,
+    this.onChangeEnd,
+    this.focusNode,
+    this.label,
+    this.autofocus = false,
+    this.mouseCursor,
+    this.semanticFormatterCallback,
+    this.thumbShape,
   }) : _sliderType = _SliderType.adaptive,
         super(key: key);
 
   /// The currently selected value for this slider.
   ///
   /// The slider's thumb is drawn at a position that corresponds to this value.
-  final double value = 0.0;
+  final double value;
 
   /// Called during a drag when the user is selecting a new value for the slider
   /// by dragging.
@@ -61,61 +88,43 @@ class ThreatMeter extends StatefulWidget {
   ///
   /// The value passed will be the last [value] that the slider had before the
   /// change began.
-  // TODO: might need thisfinal ValueChanged<double> onChangeStart;
+  final ValueChanged<double> onChangeStart;
 
   /// Called when the user is done selecting a new value for the slider.
   ///
   /// This callback shouldn't be used to update the slider [value] (use
   /// [onChanged] for that), but rather to know when the user has completed
   /// selecting a new [value] by ending a drag or a click.
-  ///
-  /// {@tool snippet}
-  ///
-  /// ```dart
-  /// Slider(
-  ///   value: _duelCommandment.toDouble(),
-  ///   min: 1.0,
-  ///   max: 10.0,
-  ///   divisions: 10,
-  ///   label: '$_duelCommandment',
-  ///   onChanged: (double newValue) {
-  ///     setState(() {
-  ///       _duelCommandment = newValue.round();
-  ///     });
-  ///   },
-  ///   onChangeEnd: (double newValue) {
-  ///     print('Ended change on $newValue');
-  ///   },
-  /// )
-  /// ```
-  /// {@end-tool}
-  ///
-  /// See also:
-  ///
-  ///  * [onChangeStart] for a callback that is called when a value change
-  ///    begins.
   final ValueChanged<double> onChangeEnd;
 
   /// The minimum value the user can select.
-  ///
-  /// Defaults to 0.0. Must be less than or equal to [max].
-  ///
-  /// If the [max] is equal to the [min], then the slider is disabled.
-  final double min;
+  final double min = 0.0;
 
   /// The maximum value the user can select.
-  ///
-  /// Defaults to 1.0. Must be greater than or equal to [min].
-  ///
-  /// If the [max] is equal to the [min], then the slider is disabled.
-  final double max;
+  final double max = 1.0;
 
   /// The number of discrete divisions.
+  final int divisions = 2;
+
+  /// The color to use for the portion of the slider track that is active.
   ///
-  /// Typically used with [label] to show the current discrete value.
+  /// The "active" side of the slider is the side between the thumb and the
+  /// minimum value.
+  final Color activeColor = Colors.white;
+
+  /// The color for the inactive portion of the slider track.
   ///
-  /// If null, the slider is continuous.
-  final int divisions;
+  /// The "inactive" side of the slider is the side between the thumb and the
+  /// maximum value.
+  final Color inactiveColor = Colors.white;
+
+  /// The callback used to create a semantic value from a slider value.
+  ///
+  /// Defaults to formatting values as a percentage.
+  final SemanticFormatterCallback semanticFormatterCallback;
+
+  /// {@macro flutter.widgets.Focus.focusNode}
+  final FocusNode focusNode;
 
   /// A label to show above the slider when the slider is active.
   ///
@@ -129,7 +138,7 @@ class ThreatMeter extends StatefulWidget {
   ///
   /// If null, then the value indicator will not be displayed.
   ///
-  /// Ignored if this slider is created with [Slider.adaptive].
+  /// Ignored if this slider is created with [ThreatMeter.adaptive].
   ///
   /// See also:
   ///
@@ -137,30 +146,8 @@ class ThreatMeter extends StatefulWidget {
   ///    shape.
   final String label;
 
-  /// The color to use for the portion of the slider track that is active.
-  ///
-  /// The "active" side of the slider is the side between the thumb and the
-  /// minimum value.
-  ///
-  /// Defaults to [SliderTheme.activeTrackColor] of the current [SliderTheme].
-  ///
-  /// Using a [SliderTheme] gives much more fine-grained control over the
-  /// appearance of various components of the slider.
-  final Color activeColor;
-
-  /// The color for the inactive portion of the slider track.
-  ///
-  /// The "inactive" side of the slider is the side between the thumb and the
-  /// maximum value.
-  ///
-  /// Defaults to the [SliderTheme.inactiveTrackColor] of the current
-  /// [SliderTheme].
-  ///
-  /// Using a [SliderTheme] gives much more fine-grained control over the
-  /// appearance of various components of the slider.
-  ///
-  /// Ignored if this slider is created with [Slider.adaptive].
-  final Color inactiveColor;
+  /// {@macro flutter.widgets.Focus.autofocus}
+  final bool autofocus;
 
   /// The cursor for a mouse pointer when it enters or is hovering over the
   /// widget.
@@ -175,49 +162,13 @@ class ThreatMeter extends StatefulWidget {
   /// If this property is null, [MaterialStateMouseCursor.clickable] will be used.
   final MouseCursor mouseCursor;
 
-  /// The callback used to create a semantic value from a slider value.
-  ///
-  /// Defaults to formatting values as a percentage.
-  ///
-  /// This is used by accessibility frameworks like TalkBack on Android to
-  /// inform users what the currently selected value is with more context.
-  ///
-  /// {@tool snippet}
-  ///
-  /// In the example below, a slider for currency values is configured to
-  /// announce a value with a currency label.
-  ///
-  /// ```dart
-  /// Slider(
-  ///   value: _dollars.toDouble(),
-  ///   min: 20.0,
-  ///   max: 330.0,
-  ///   label: '$_dollars dollars',
-  ///   onChanged: (double newValue) {
-  ///     setState(() {
-  ///       _dollars = newValue.round();
-  ///     });
-  ///   },
-  ///   semanticFormatterCallback: (double newValue) {
-  ///     return '${newValue.round()} dollars';
-  ///   }
-  ///  )
-  /// ```
-  /// {@end-tool}
-  ///
-  /// Ignored if this slider is created with [Slider.adaptive]
-  final SemanticFormatterCallback semanticFormatterCallback;
+  final SliderComponentShape thumbShape;
 
-  /// {@macro flutter.widgets.Focus.focusNode}
-  final FocusNode focusNode;
-
-  /// {@macro flutter.widgets.Focus.autofocus}
-  final bool autofocus;
 
   final _SliderType _sliderType ;
 
   @override
-  _SliderState createState() => _SliderState();
+  _ThreatMeterState createState() => _ThreatMeterState(thumbShape: thumbShape);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -229,16 +180,20 @@ class ThreatMeter extends StatefulWidget {
     properties.add(DoubleProperty('min', min));
     properties.add(DoubleProperty('max', max));
     properties.add(IntProperty('divisions', divisions));
-    properties.add(StringProperty('label', label));
     properties.add(ColorProperty('activeColor', activeColor));
     properties.add(ColorProperty('inactiveColor', inactiveColor));
-    properties.add(ObjectFlagProperty<ValueChanged<double>>.has('semanticFormatterCallback', semanticFormatterCallback));
     properties.add(ObjectFlagProperty<FocusNode>.has('focusNode', focusNode));
+    properties.add(StringProperty('label', label));
     properties.add(FlagProperty('autofocus', value: autofocus, ifTrue: 'autofocus'));
+    properties.add(ObjectFlagProperty<ValueChanged<double>>.has('semanticFormatterCallback', semanticFormatterCallback));
+    properties.add(ObjectFlagProperty<SliderComponentShape>.has('thumbShape', thumbShape));
   }
 }
 
-class _SliderState extends State<Slider> with TickerProviderStateMixin {
+class _ThreatMeterState extends State<ThreatMeter> with TickerProviderStateMixin {
+  _ThreatMeterState({
+    this.thumbShape,
+  }) : super();
   static const Duration enableAnimationDuration = Duration(milliseconds: 75);
   static const Duration valueIndicatorAnimationDuration = Duration(milliseconds: 100);
 
@@ -264,6 +219,8 @@ class _SliderState extends State<Slider> with TickerProviderStateMixin {
   bool get _enabled => widget.onChanged != null;
   // Value Indicator Animation that appears on the Overlay.
   PaintValueIndicator paintValueIndicator;
+
+  SliderComponentShape thumbShape;
 
   @override
   void initState() {
@@ -433,10 +390,10 @@ class _SliderState extends State<Slider> with TickerProviderStateMixin {
     // Guidelines.
 
     const double _defaultTrackHeight = 4;
-    const SliderTrackShape _defaultTrackShape = RoundedRectSliderTrackShape();
-    const SliderTickMarkShape _defaultTickMarkShape = RoundSliderTickMarkShape();
+    const SliderTrackShape _defaultTrackShape = ThreatMeterTrackShape();
+    const SliderTickMarkShape _defaultTickMarkShape = ThreatMeterTickMarkShape();
     const SliderComponentShape _defaultOverlayShape = RoundSliderOverlayShape();
-    const SliderComponentShape _defaultThumbShape = RoundSliderThumbShape();
+    SliderComponentShape _defaultThumbShape = thumbShape;
     const SliderComponentShape _defaultValueIndicatorShape = RectangularSliderValueIndicatorShape();
     const ShowValueIndicator _defaultShowValueIndicator = ShowValueIndicator.onlyForDiscrete;
 
@@ -468,7 +425,7 @@ class _SliderState extends State<Slider> with TickerProviderStateMixin {
       valueIndicatorColor: valueIndicatorColor,
       trackShape: sliderTheme.trackShape ?? _defaultTrackShape,
       tickMarkShape: sliderTheme.tickMarkShape ?? _defaultTickMarkShape,
-      thumbShape: sliderTheme.thumbShape ?? _defaultThumbShape,
+      thumbShape: _defaultThumbShape,
       overlayShape: sliderTheme.overlayShape ?? _defaultOverlayShape,
       valueIndicatorShape: valueIndicatorShape,
       showValueIndicator: sliderTheme.showValueIndicator ?? _defaultShowValueIndicator,
@@ -592,7 +549,7 @@ class _SliderRenderObjectWidget extends LeafRenderObjectWidget {
   final ValueChanged<double> onChangeStart;
   final ValueChanged<double> onChangeEnd;
   final SemanticFormatterCallback semanticFormatterCallback;
-  final _SliderState state;
+  final _ThreatMeterState state;
   final bool hasFocus;
   final bool hovering;
 
@@ -623,7 +580,6 @@ class _SliderRenderObjectWidget extends LeafRenderObjectWidget {
       ..value = value
       ..divisions = divisions
       ..label = label
-      ..sliderTheme = sliderTheme
       ..theme = Theme.of(context)
       ..textScaleFactor = textScaleFactor
       ..screenSize = screenSize
@@ -653,7 +609,7 @@ class _RenderSlider extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     SemanticFormatterCallback semanticFormatterCallback,
     this.onChangeStart,
     this.onChangeEnd,
-    @required _SliderState state,
+    @required _ThreatMeterState state,
     @required TextDirection textDirection,
     bool hasFocus,
     bool hovering,
@@ -722,7 +678,7 @@ class _RenderSlider extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
   ];
   double get _minPreferredTrackHeight => _sliderTheme.trackHeight;
 
-  final _SliderState _state;
+  final _ThreatMeterState _state;
   Animation<double> _overlayAnimation;
   Animation<double> _valueIndicatorAnimation;
   Animation<double> _enableAnimation;
@@ -1032,6 +988,8 @@ class _RenderSlider extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
       if (onChangeStart != null) {
         onChangeStart(_discretize(value));
       }
+
+      sliderTheme = sliderTheme.copyWith(thumbShape: DraggingThreatMeterThumbShape());
       _currentDragValue = _getValueFromGlobalPosition(globalPosition);
       onChanged(_discretize(_currentDragValue));
       _state.overlayController.forward();
@@ -1058,6 +1016,7 @@ class _RenderSlider extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
       if (onChangeEnd != null) {
         onChangeEnd(_discretize(_currentDragValue));
       }
+      sliderTheme = sliderTheme.copyWith(thumbShape: ThreatMeterThumbShape());
       _active = false;
       _currentDragValue = 0.0;
       _state.overlayController.reverse();
@@ -1335,7 +1294,7 @@ class _ValueIndicatorRenderObjectWidget extends LeafRenderObjectWidget {
     this.state,
   });
 
-  final _SliderState state;
+  final _ThreatMeterState state;
 
   @override
   _RenderValueIndicator createRenderObject(BuildContext context) {
@@ -1351,7 +1310,7 @@ class _ValueIndicatorRenderObjectWidget extends LeafRenderObjectWidget {
 
 class _RenderValueIndicator extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
   _RenderValueIndicator({
-    _SliderState state,
+    _ThreatMeterState state,
   }) : _state = state {
     _valueIndicatorAnimation = CurvedAnimation(
       parent: _state.valueIndicatorController,
@@ -1359,7 +1318,7 @@ class _RenderValueIndicator extends RenderBox with RelayoutWhenSystemFontsChange
     );
   }
   Animation<double> _valueIndicatorAnimation;
-  _SliderState _state;
+  _ThreatMeterState _state;
 
   @override
   bool get sizedByParent => true;
