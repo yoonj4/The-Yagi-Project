@@ -72,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        child: Column(
+        child: RotatedBox(
           // Column is also a layout widget. It takes a list of children and
           // arranges them vertically. By default, it sizes itself to fit its
           // children horizontally, and tries to be as tall as its parent.
@@ -87,28 +87,26 @@ class _MyHomePageState extends State<MyHomePage> {
           // center the children vertically; the main axis here is the vertical
           // axis because Columns are vertical (the cross axis would be
           // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            ThreatMeter(
-              value: _value,
-              thumbShape: _thumbShape,
-              onChanged: (double value) {
-                setState(() {
-                  _value = value;
-                });
-              },
-              onChangeStart: (double value) {
-                setState(() {
-                  _thumbShape = DraggingThreatMeterThumbShape();
-                });
-              },
-              onChangeEnd: (double value) {
-                setState(() {
-                  _thumbShape = ThreatMeterThumbShape();
-                });
-              },
-            ),
-          ],
+          quarterTurns: 3,
+          child: ThreatMeter(
+                   value: _value,
+                   thumbShape: _thumbShape,
+                   onChanged: (double value) {
+                     setState(() {
+                       _value = value;
+                     });
+                   },
+                   onChangeStart: (double value) {
+                     setState(() {
+                       _thumbShape = DraggingThreatMeterThumbShape();
+                     });
+                   },
+                   onChangeEnd: (double value) {
+                     setState(() {
+                       _thumbShape = ThreatMeterThumbShape();
+                     });
+                   },
+                 ),
         ),
       ),
     );

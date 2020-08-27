@@ -391,7 +391,7 @@ class _ThreatMeterState extends State<ThreatMeter> with TickerProviderStateMixin
 
     const double _defaultTrackHeight = 4;
     const SliderTrackShape _defaultTrackShape = ThreatMeterTrackShape();
-    const SliderTickMarkShape _defaultTickMarkShape = ThreatMeterTickMarkShape();
+    SliderTickMarkShape _defaultTickMarkShape = ThreatMeterTickMarkShape();
     const SliderComponentShape _defaultOverlayShape = RoundSliderOverlayShape();
     SliderComponentShape _defaultThumbShape = thumbShape;
     const SliderComponentShape _defaultValueIndicatorShape = RectangularSliderValueIndicatorShape();

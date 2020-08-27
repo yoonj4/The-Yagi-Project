@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class ThreatMeterTickMarkShape extends SliderTickMarkShape {
   /// Create a slider tick mark that draws a circle.
-  const ThreatMeterTickMarkShape({
+  ThreatMeterTickMarkShape({
     this.tickMarkRadius,
   });
 
@@ -10,6 +10,10 @@ class ThreatMeterTickMarkShape extends SliderTickMarkShape {
   ///
   /// If it is not provided, then 1/4 of the [SliderThemeData.trackHeight] is used.
   final double tickMarkRadius;
+
+  var paints = [null, Paint()..color = Colors.yellow[800], Paint()..color = Colors.red];
+
+  int paintsIndex = 0;
 
   @override
   Size getPreferredSize({
@@ -48,24 +52,16 @@ class ThreatMeterTickMarkShape extends SliderTickMarkShape {
     assert(textDirection != null);
     assert(thumbCenter != null);
     assert(isEnabled != null);
-    // The paint color of the tick mark depends on its position relative
-    // to the thumb and the text direction.
-    Paint paint;
-    if (center.dx > 196.3 && center.dx < 196.5) {
-      paint = Paint()..color = Colors.yellow[800];
-    } else if (center.dx > 366.6 && center.dx < 366.8) {
-      paint = Paint()..color = Colors.red;
-    } else {
-      return;
-    }
 
-    // The tick marks are tiny circles that are the same height as the track.
-    final double tickMarkRadius = getPreferredSize(
-      isEnabled: isEnabled,
-      sliderTheme: sliderTheme,
-    ).width / 2;
-    if (tickMarkRadius > 0) {
-      context.canvas.drawRect(Rect.fromCenter(center: center, width: 2, height: 22), paint);
+    if (paintsIndex != 0) {
+      context.canvas.drawRect(
+          Rect.fromCenter(center: center, width: 2, height: 22),
+          paints[paintsIndex++]);
+    } else {
+      paintsIndex++;
+    }
+    if (paintsIndex >= paints.length) {
+      paintsIndex = 0;
     }
   }
 }
