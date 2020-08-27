@@ -52,9 +52,9 @@ class ThreatMeterTickMarkShape extends SliderTickMarkShape {
     // to the thumb and the text direction.
     Paint paint;
     if (center.dx > 196.3 && center.dx < 196.5) {
-      paint = Paint()..color = Colors.yellow;
+      paint = Paint()..color = Colors.yellow[800];
     } else if (center.dx > 366.6 && center.dx < 366.8) {
-      paint = Paint()..color = Colors.redAccent;
+      paint = Paint()..color = Colors.red;
     } else {
       return;
     }
@@ -65,7 +65,7 @@ class ThreatMeterTickMarkShape extends SliderTickMarkShape {
       sliderTheme: sliderTheme,
     ).width / 2;
     if (tickMarkRadius > 0) {
-      context.canvas.drawLine(center, Offset(center.dx, center.dy - 22), paint);
+      context.canvas.drawRect(Rect.fromCenter(center: center, width: 2, height: 22), paint);
     }
   }
 }

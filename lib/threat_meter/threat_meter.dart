@@ -1159,7 +1159,7 @@ class _RenderSlider extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
       final double adjustedTrackWidth = trackRect.width - padding;
       // If the tick marks would be too dense, don't bother painting them.
       if (adjustedTrackWidth / divisions >= 3.0 * tickMarkWidth) {
-        final double dy = trackRect.center.dy;
+        final double dy = trackRect.center.dy - 11;
         for (int i = 0; i <= divisions; i++) {
           final double value = i / divisions;
           // The ticks are mapped to be within the track, so the tick mark width
