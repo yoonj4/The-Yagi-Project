@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter_thumb_shape.dart';
@@ -105,6 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
                      setState(() {
                        _thumbShape = ThreatMeterThumbShape();
                      });
+                     ThreatMeter.handleThumbRelease(value);
                    },
                  ),
         ),
