@@ -173,6 +173,8 @@ class _MyHomePageState extends State<MyHomePage> {
       } else if (_canSendMessage(now)) {
         print("RED2");
       }
+    } else if(_currentThreatLevel != ThreatLevel.noThreat) {
+      print("BACK TO SAFETY");
     }
   }
 
