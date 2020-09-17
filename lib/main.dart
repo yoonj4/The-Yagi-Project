@@ -111,9 +111,10 @@ class _MyHomePageState extends State<MyHomePage> {
                      });
                    },
                    onChangeEnd: (double value) {
-                     _handleThumbRelease(value);
+                     int now = DateTime.now().millisecondsSinceEpoch;
+                     _handleThumbRelease(value, now);
                      setState(() {
-                       _updateMainPageState(value);
+                       _updateMainPageState(value, now);
                      });
                    },
                  ),
@@ -122,28 +123,38 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _updateMainPageState(double value) {
+  void _updateMainPageState(double value, int now) {
     _thumbShape = ThreatMeterThumbShape();
-    if (value >= _warningValue && value < _alertValue && _canSendMessage(ThreatLevel.caution)) {
+    if (value >= _warningValue && value < _alertValue && _canSendMessage(now)) {
       _currentThreatLevel = ThreatLevel.caution;
-      _lastThreatLevelModifiedTime = DateTime.now().millisecondsSinceEpoch;
-    } else if (value >= _alertValue && _canSendMessage(ThreatLevel.highThreat)) {
+      _lastThreatLevelModifiedTime = now;
+    } else if (value >= _alertValue && _canSendMessage(now)) {
       _currentThreatLevel = ThreatLevel.highThreat;
-      _lastThreatLevelModifiedTime = DateTime.now().millisecondsSinceEpoch;
+      _lastThreatLevelModifiedTime = now;
+    } else if (value < _warningValue) {
+      _currentThreatLevel = ThreatLevel.noThreat;
+      _lastThreatLevelModifiedTime = now;
     }
   }
 
-  void _handleThumbRelease(double value) {
-    if (value >= _warningValue && value < _alertValue && _canSendMessage(ThreatLevel.caution)) {
-      print("YELLOW");
-    } else if (value >= _alertValue && _canSendMessage(ThreatLevel.highThreat)) {
-      print("RED");
+  void _handleThumbRelease(double value, int now) {
+    if (value >= _warningValue && value < _alertValue) {
+      if (_currentThreatLevel != ThreatLevel.caution) {
+        print("YELLOW1");
+      } else if (_canSendMessage(now)) {
+        print("YELLOW2");
+      }
+    } else if (value >= _alertValue) {
+      if (_currentThreatLevel != ThreatLevel.highThreat) {
+        print("RED1");
+      } else if (_canSendMessage(now)) {
+        print("RED2");
+      }
     }
   }
 
-  bool _canSendMessage(ThreatLevel newThreatLevel) {
+  bool _canSendMessage(int now) {
     // We can send a message if
-    return _currentThreatLevel != newThreatLevel  // the previous threat level is not the same as the new threat level
-        || DateTime.now().millisecondsSinceEpoch - _lastThreatLevelModifiedTime >= 10 * 1000;  // or it's been 10 seconds since the previous message
+    return now - _lastThreatLevelModifiedTime >= 10 * 1000;  // or it's been 10 seconds since the previous message
   }
 }
