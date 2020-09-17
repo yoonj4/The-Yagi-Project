@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:the_yagi_project/threat_meter/threat_level.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter_thumb_shape.dart';
 
@@ -58,7 +59,8 @@ class _MyHomePageState extends State<MyHomePage> {
   double _alertValue = 1;
 
   double _value = 0.0;
-
+  ThreatLevel _currentThreatLevel = ThreatLevel.noThreat;
+  int _lastThreatLevelModifiedTime = -1;  // represented in milliseconds since epoch. -1 is the value to represent it's never been set.
   SliderComponentShape _thumbShape = ThreatMeterThumbShape();
 
 
@@ -109,10 +111,10 @@ class _MyHomePageState extends State<MyHomePage> {
                      });
                    },
                    onChangeEnd: (double value) {
+                     _handleThumbRelease(value);
                      setState(() {
-                       _thumbShape = ThreatMeterThumbShape();
+                       _updateMainPageState(value);
                      });
-                     handleThumbRelease(value);
                    },
                  ),
         ),
@@ -120,11 +122,28 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void handleThumbRelease(double value) {
-    if (value >= _warningValue && value < _alertValue) {
+  void _updateMainPageState(double value) {
+    _thumbShape = ThreatMeterThumbShape();
+    if (value >= _warningValue && value < _alertValue && _canSendMessage(ThreatLevel.caution)) {
+      _currentThreatLevel = ThreatLevel.caution;
+      _lastThreatLevelModifiedTime = DateTime.now().millisecondsSinceEpoch;
+    } else if (value >= _alertValue && _canSendMessage(ThreatLevel.highThreat)) {
+      _currentThreatLevel = ThreatLevel.highThreat;
+      _lastThreatLevelModifiedTime = DateTime.now().millisecondsSinceEpoch;
+    }
+  }
+
+  void _handleThumbRelease(double value) {
+    if (value >= _warningValue && value < _alertValue && _canSendMessage(ThreatLevel.caution)) {
       print("YELLOW");
-    } else if (value >= _alertValue) {
+    } else if (value >= _alertValue && _canSendMessage(ThreatLevel.highThreat)) {
       print("RED");
     }
+  }
+
+  bool _canSendMessage(ThreatLevel newThreatLevel) {
+    // We can send a message if
+    return _currentThreatLevel != newThreatLevel  // the previous threat level is not the same as the new threat level
+        || DateTime.now().millisecondsSinceEpoch - _lastThreatLevelModifiedTime >= 10 * 1000;  // or it's been 10 seconds since the previous message
   }
 }
