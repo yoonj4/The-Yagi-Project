@@ -125,14 +125,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _updateMainPageState(double value, int now) {
     _thumbShape = ThreatMeterThumbShape();
-    if (value >= _warningValue && value < _alertValue && _canSendMessage(now)) {
+    if (value >= _warningValue && value < _alertValue) {
       _currentThreatLevel = ThreatLevel.caution;
-      _lastThreatLevelModifiedTime = now;
-    } else if (value >= _alertValue && _canSendMessage(now)) {
+    } else if (value >= _alertValue) {
       _currentThreatLevel = ThreatLevel.highThreat;
-      _lastThreatLevelModifiedTime = now;
     } else if (value < _warningValue) {
       _currentThreatLevel = ThreatLevel.noThreat;
+    }
+
+    if (_canSendMessage(now)) {
       _lastThreatLevelModifiedTime = now;
     }
   }
