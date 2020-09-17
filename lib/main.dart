@@ -1,10 +1,8 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter_thumb_shape.dart';
-import 'package:the_yagi_project/pages/settings/settings_page.dart';
-import 'package:the_yagi_project/pages/contacts/contacts_page.dart';
-import 'package:the_yagi_project/pages/log/log_page.dart';
-import 'package:the_yagi_project/pages/about/about_page.dart';
 
 void main() {
   runApp(MyApp());
@@ -26,21 +24,13 @@ class MyApp extends StatelessWidget {
         // or simply save your changes to "hot reload" in a Flutter IDE).
         // Notice that the counter didn't reset back to zero; the application
         // is not restarted.
-        primarySwatch: Colors.green,
+        primarySwatch: Colors.blue,
         // This makes the visual density adapt to the platform that you run
         // the app on. For desktop platforms, the controls will be smaller and
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      initialRoute: '/home',
-      routes: {
-        '/': (context) => MyHomePage(title: 'Flutter Demo Home Page'),
-        '/home': (context) => MyHomePage(title: 'Home Page'),
-        '/contacts': (context) => ContactsPage(title: 'Contacts Page'),
-        '/log': (context) => LogPage(title: 'Log Page'),
-        '/settings': (context) => SettingsPage(title: 'Settings Page'),
-        '/about': (context) => AboutPage(title: 'About Page'),
-      }
+      home: MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
@@ -64,8 +54,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  double _warningValue = 0.5;
+  double _alertValue = 1;
+
   double _value = 0.0;
+
   SliderComponentShape _thumbShape = ThreatMeterThumbShape();
+
 
   @override
   Widget build(BuildContext context) {
@@ -81,58 +76,55 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Column(
+      body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        children: [
-          RotatedBox(
+        child: RotatedBox(
+          // Column is also a layout widget. It takes a list of children and
+          // arranges them vertically. By default, it sizes itself to fit its
+          // children horizontally, and tries to be as tall as its parent.
+          //
+          // Invoke "debug painting" (press "p" in the console, choose the
+          // "Toggle Debug Paint" action from the Flutter Inspector in Android
+          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+          // to see the wireframe for each widget.
+          //
+          // Column has various properties to control how it sizes itself and
+          // how it positions its children. Here we use mainAxisAlignment to
+          // center the children vertically; the main axis here is the vertical
+          // axis because Columns are vertical (the cross axis would be
+          // horizontal).
           quarterTurns: 3,
           child: ThreatMeter(
-            value: _value,
-            thumbShape: _thumbShape,
-            onChanged: (double value) {
-              setState(() {
-                _value = value;
-              });
-            },
-            onChangeStart: (double value) {
-              setState(() {
-                _thumbShape = DraggingThreatMeterThumbShape();
-              });
-            },
-            onChangeEnd: (double value) {
-              setState(() {
-                _thumbShape = ThreatMeterThumbShape();
-              });
-            },
-          ),
+                   value: _value,
+                   thumbShape: _thumbShape,
+                   onChanged: (double value) {
+                     setState(() {
+                       _value = value;
+                     });
+                   },
+                   onChangeStart: (double value) {
+                     setState(() {
+                       _thumbShape = DraggingThreatMeterThumbShape();
+                     });
+                   },
+                   onChangeEnd: (double value) {
+                     setState(() {
+                       _thumbShape = ThreatMeterThumbShape();
+                     });
+                     handleThumbRelease(value);
+                   },
+                 ),
         ),
-        Row(
-          children: [
-            Expanded( child: FlatButton(
-                onPressed: (){ Navigator.pushNamed(context, '/contacts'); },
-                color: Colors.amber,
-                child: Text('Contacts')
-            )),
-            Expanded( child: FlatButton(
-              onPressed: (){ Navigator.pushNamed(context, '/settings'); },
-              color: Colors.amber,
-              child: Text('Settings')
-            )),
-            Expanded( child: FlatButton(
-                onPressed: (){ Navigator.pushNamed(context, '/log'); },
-                color: Colors.amber,
-                child: Text('Log')
-            )),
-            Expanded( child: FlatButton(
-                onPressed: (){ Navigator.pushNamed(context, '/about'); },
-                color: Colors.amber,
-                child: Text('About')
-            )),
-          ],
-        )
-        ]
       ),
     );
+  }
+
+  void handleThumbRelease(double value) {
+    if (value >= _warningValue && value < _alertValue) {
+      print("YELLOW");
+    } else if (value >= _alertValue) {
+      print("RED");
+    }
   }
 }

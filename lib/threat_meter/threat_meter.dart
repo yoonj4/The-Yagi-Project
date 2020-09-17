@@ -164,9 +164,6 @@ class ThreatMeter extends StatefulWidget {
 
   final _SliderType _sliderType ;
 
-  static final double _warningValue = 0.5;
-  static final double _alertValue = 1.0;
-
   @override
   _ThreatMeterState createState() => _ThreatMeterState(thumbShape: thumbShape);
 
@@ -186,14 +183,6 @@ class ThreatMeter extends StatefulWidget {
     properties.add(FlagProperty('autofocus', value: autofocus, ifTrue: 'autofocus'));
     properties.add(ObjectFlagProperty<ValueChanged<double>>.has('semanticFormatterCallback', semanticFormatterCallback));
     properties.add(ObjectFlagProperty<SliderComponentShape>.has('thumbShape', thumbShape));
-  }
-
-  static void handleThumbRelease(double value) {
-    if (value >= _warningValue && value < _alertValue) {
-      print("YELLOW");
-    } else if (value >= _alertValue) {
-      print("RED");
-    }
   }
 }
 
