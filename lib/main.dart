@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:the_yagi_project/location/location.dart';
 import 'package:the_yagi_project/threat_meter/threat_level.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter_thumb_shape.dart';
@@ -160,21 +161,27 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _handleThumbRelease(double value, int now) {
+  void _handleThumbRelease(double value, int now) async {
+    String mapsUrl = await getMapsUrl();
     if (value >= _warningValue && value < _alertValue) {
       if (_currentThreatLevel != ThreatLevel.caution) {
         print("YELLOW1");
+        print(mapsUrl);
       } else if (_canSendMessage(now)) {
         print("YELLOW2");
+        print(mapsUrl);
       }
     } else if (value >= _alertValue) {
       if (_currentThreatLevel != ThreatLevel.highThreat) {
         print("RED1");
+        print(mapsUrl);
       } else if (_canSendMessage(now)) {
         print("RED2");
+        print(mapsUrl);
       }
     } else if(_currentThreatLevel != ThreatLevel.noThreat) {
       print("BACK TO SAFETY");
+      print(mapsUrl);
     }
   }
 
