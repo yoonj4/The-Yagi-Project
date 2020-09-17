@@ -33,15 +33,15 @@ class MyApp extends StatelessWidget {
         // closer together (more dense) than on mobile platforms.
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-        initialRoute: '/home',
-        routes: {
-          '/': (context) => MyHomePage(title: 'Flutter Demo Home Page'),
-          '/home': (context) => MyHomePage(title: 'Home Page'),
-          '/contacts': (context) => ContactsPage(title: 'Contacts Page'),
-          '/log': (context) => LogPage(title: 'Log Page'),
-          '/settings': (context) => SettingsPage(title: 'Settings Page'),
-          '/about': (context) => AboutPage(title: 'About Page'),
-        }
+      initialRoute: '/home',
+      routes: {
+        '/': (context) => MyHomePage(title: 'Flutter Demo Home Page'),
+        '/home': (context) => MyHomePage(title: 'Home Page'),
+        '/contacts': (context) => ContactsPage(title: 'Contacts Page'),
+        '/log': (context) => LogPage(title: 'Log Page'),
+        '/settings': (context) => SettingsPage(title: 'Settings Page'),
+        '/about': (context) => AboutPage(title: 'About Page'),
+      }
     );
   }
 }
