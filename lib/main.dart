@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:the_yagi_project/location/location.dart';
 import 'package:the_yagi_project/threat_meter/threat_level.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter_thumb_shape.dart';
@@ -109,9 +110,8 @@ class _MyHomePageState extends State<MyHomePage> {
                      },
                      onChangeEnd: (double value) {
                        int now = DateTime.now().millisecondsSinceEpoch;
-                       _handleThumbRelease(value, now);
                        setState(() {
-                         _updateMainPageState(value, now);
+                         _handleThumbRelease(value, now);
                        });
                      },
                    ),
@@ -145,7 +145,29 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _updateMainPageState(double value, int now) {
+  void _handleThumbRelease(double value, int now) async {
+    String mapsUrl = await getMapsUrl();
+    if (value >= _warningValue && value < _alertValue) {
+      if (_currentThreatLevel != ThreatLevel.caution) {
+        print("YELLOW1");
+        print(mapsUrl);
+      } else if (_canSendMessage(now)) {
+        print("YELLOW2");
+        print(mapsUrl);
+      }
+    } else if (value >= _alertValue) {
+      if (_currentThreatLevel != ThreatLevel.highThreat) {
+        print("RED1");
+        print(mapsUrl);
+      } else if (_canSendMessage(now)) {
+        print("RED2");
+        print(mapsUrl);
+      }
+    } else if(_currentThreatLevel != ThreatLevel.noThreat) {
+      print("BACK TO SAFETY");
+      print(mapsUrl);
+    }
+
     _thumbShape = ThreatMeterThumbShape();
     if (value >= _warningValue && value < _alertValue) {
       _currentThreatLevel = ThreatLevel.caution;
@@ -160,24 +182,8 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  void _handleThumbRelease(double value, int now) {
-    if (value >= _warningValue && value < _alertValue) {
-      if (_currentThreatLevel != ThreatLevel.caution) {
-        print("YELLOW1");
-      } else if (_canSendMessage(now)) {
-        print("YELLOW2");
-      }
-    } else if (value >= _alertValue) {
-      if (_currentThreatLevel != ThreatLevel.highThreat) {
-        print("RED1");
-      } else if (_canSendMessage(now)) {
-        print("RED2");
-      }
-    }
-  }
-
   bool _canSendMessage(int now) {
-    // We can send a message if
-    return now - _lastThreatLevelModifiedTime >= 10 * 1000;  // or it's been 10 seconds since the previous message
+    // We can send a message if it's been 10 seconds since the previous message
+    return now - _lastThreatLevelModifiedTime >= 10 * 1000;
   }
 }
