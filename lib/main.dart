@@ -186,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   bool _canSendMessage(int now) {
-    // We can send a message if
-    return now - _lastThreatLevelModifiedTime >= 10 * 1000;  // or it's been 10 seconds since the previous message
+    // We can send a message if it's been 10 seconds since the previous message
+    return now - _lastThreatLevelModifiedTime >= 10 * 1000;
   }
 }
