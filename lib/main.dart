@@ -110,9 +110,8 @@ class _MyHomePageState extends State<MyHomePage> {
                      },
                      onChangeEnd: (double value) {
                        int now = DateTime.now().millisecondsSinceEpoch;
-                       _handleThumbRelease(value, now);
                        setState(() {
-                         _updateMainPageState(value, now);
+                         _handleThumbRelease(value, now);
                        });
                      },
                    ),
@@ -146,21 +145,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _updateMainPageState(double value, int now) {
-    _thumbShape = ThreatMeterThumbShape();
-    if (value >= _warningValue && value < _alertValue) {
-      _currentThreatLevel = ThreatLevel.caution;
-    } else if (value >= _alertValue) {
-      _currentThreatLevel = ThreatLevel.highThreat;
-    } else if (value < _warningValue) {
-      _currentThreatLevel = ThreatLevel.noThreat;
-    }
-
-    if (_canSendMessage(now)) {
-      _lastThreatLevelModifiedTime = now;
-    }
-  }
-
   void _handleThumbRelease(double value, int now) async {
     String mapsUrl = await getMapsUrl();
     if (value >= _warningValue && value < _alertValue) {
@@ -182,6 +166,19 @@ class _MyHomePageState extends State<MyHomePage> {
     } else if(_currentThreatLevel != ThreatLevel.noThreat) {
       print("BACK TO SAFETY");
       print(mapsUrl);
+    }
+
+    _thumbShape = ThreatMeterThumbShape();
+    if (value >= _warningValue && value < _alertValue) {
+      _currentThreatLevel = ThreatLevel.caution;
+    } else if (value >= _alertValue) {
+      _currentThreatLevel = ThreatLevel.highThreat;
+    } else if (value < _warningValue) {
+      _currentThreatLevel = ThreatLevel.noThreat;
+    }
+
+    if (_canSendMessage(now)) {
+      _lastThreatLevelModifiedTime = now;
     }
   }
 
