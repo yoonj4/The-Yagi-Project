@@ -103,9 +103,6 @@ class ThreatMeter extends StatefulWidget {
   /// The maximum value the user can select.
   final double max = 1.0;
 
-  /// The number of discrete divisions.
-  final int divisions = 2;
-
   /// The color to use for the portion of the slider track that is active.
   ///
   /// The "active" side of the slider is the side between the thumb and the
@@ -179,7 +176,6 @@ class ThreatMeter extends StatefulWidget {
     properties.add(ObjectFlagProperty<ValueChanged<double>>.has('onChangeEnd', onChangeEnd));
     properties.add(DoubleProperty('min', min));
     properties.add(DoubleProperty('max', max));
-    properties.add(IntProperty('divisions', divisions));
     properties.add(ColorProperty('activeColor', activeColor));
     properties.add(ColorProperty('inactiveColor', inactiveColor));
     properties.add(ObjectFlagProperty<FocusNode>.has('focusNode', focusNode));
@@ -463,7 +459,6 @@ class _ThreatMeterState extends State<ThreatMeter> with TickerProviderStateMixin
           child: _SliderRenderObjectWidget(
             key: _renderObjectKey,
             value: _unlerp(widget.value),
-            divisions: widget.divisions,
             label: widget.label,
             sliderTheme: sliderTheme,
             textScaleFactor: MediaQuery.of(context).textScaleFactor,
@@ -494,7 +489,6 @@ class _ThreatMeterState extends State<ThreatMeter> with TickerProviderStateMixin
         onChangeEnd: widget.onChangeEnd,
         min: widget.min,
         max: widget.max,
-        divisions: widget.divisions,
         activeColor: widget.activeColor,
       ),
     );
@@ -1150,33 +1144,32 @@ class _RenderSlider extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
       );
     }
 
-    if (isDiscrete) {
-      final double tickMarkWidth = _sliderTheme.tickMarkShape.getPreferredSize(
-        isEnabled: isInteractive,
-        sliderTheme: _sliderTheme,
-      ).width;
-      final double padding = trackRect.height;
-      final double adjustedTrackWidth = trackRect.width - padding;
-      // If the tick marks would be too dense, don't bother painting them.
-      if (adjustedTrackWidth / divisions >= 3.0 * tickMarkWidth) {
-        final double dy = trackRect.center.dy - 11;
-        for (int i = 0; i <= divisions; i++) {
-          final double value = i / divisions;
-          // The ticks are mapped to be within the track, so the tick mark width
-          // must be subtracted from the track width.
-          final double dx = trackRect.left + value * adjustedTrackWidth + padding / 2;
-          final Offset tickMarkOffset = Offset(dx, dy);
-          _sliderTheme.tickMarkShape.paint(
-            context,
-            tickMarkOffset,
-            parentBox: this,
-            sliderTheme: _sliderTheme,
-            enableAnimation: _enableAnimation,
-            textDirection: _textDirection,
-            thumbCenter: thumbCenter,
-            isEnabled: isInteractive,
-          );
-        }
+    final double tickMarkWidth = _sliderTheme.tickMarkShape.getPreferredSize(
+      isEnabled: isInteractive,
+      sliderTheme: _sliderTheme,
+    ).width;
+    final double padding = trackRect.height;
+    final double adjustedTrackWidth = trackRect.width - padding;
+    final int divisions = 2;
+    // If the tick marks would be too dense, don't bother painting them.
+    if (adjustedTrackWidth / divisions >= 3.0 * tickMarkWidth) {
+      final double dy = trackRect.center.dy - 11;
+      for (int i = 0; i <= divisions; i++) {
+        final double value = i / divisions;
+        // The ticks are mapped to be within the track, so the tick mark width
+        // must be subtracted from the track width.
+        final double dx = trackRect.left + value * adjustedTrackWidth + padding / 2;
+        final Offset tickMarkOffset = Offset(dx, dy);
+        _sliderTheme.tickMarkShape.paint(
+          context,
+          tickMarkOffset,
+          parentBox: this,
+          sliderTheme: _sliderTheme,
+          enableAnimation: _enableAnimation,
+          textDirection: _textDirection,
+          thumbCenter: thumbCenter,
+          isEnabled: isInteractive,
+        );
       }
     }
 
