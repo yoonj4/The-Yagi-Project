@@ -12,7 +12,7 @@ class ContactsList extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Contacts'),
+      home: MyHomePage(title: 'Yagi Project Contacts'),
     );
   }
 }
@@ -29,6 +29,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<Contact> contacts = [];
   List<Contact> contactsFiltered = [];
+  List<Contact> emergencyContact = [];
   Map<String, Color> contactsColorMap = new Map();
   TextEditingController searchController = new TextEditingController();
 
@@ -115,22 +116,51 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: EdgeInsets.all(20),
         child: Column(
           children: <Widget>[
+            Text(
+              'Emergency Contact',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
             Container(
-              child: TextField(
-                controller: searchController,
-                decoration: InputDecoration(
-                    labelText: 'Search',
-                    border: new OutlineInputBorder(
-                        borderSide: new BorderSide(
-                            color: Theme.of(context).primaryColor
-                        )
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: emergencyContact.length,
+              itemBuilder: (context, index) {
+/*
+ Will be used when avatars are added to emergency list
+                Contact contact = isSearching == true
+                    ? emergencyContact[index]
+                    : contacts[index];
+
+                var baseColor = contactsColorMap[contact
+                    .displayName] as dynamic;
+
+                Color color1 = baseColor[800];
+                Color color2 = baseColor[400];
+
+ */
+                if (emergencyContact.length == 0) {
+                  return null;
+                }
+                else {
+                  return ListTile(
+                    title: Text(emergencyContact[index].displayName),
+                    subtitle: Text(
+                        emergencyContact[index].phones.length > 0 ? emergencyContact[index].phones
+                            .elementAt(0)
+                            .value : ''
                     ),
-                    prefixIcon: Icon(
-                        Icons.search,
-                        color: Theme.of(context).primaryColor
-                    )
-                ),
-              ),
+
+                  );
+                }
+              },
+            ),
+        ),
+            Divider(
+              color: Colors.grey
+            ),
+            Text(
+              'Contacts',
+              style: (TextStyle(fontWeight: FontWeight.bold, fontSize:20))
             ),
             Expanded(
               child: ListView.builder(
@@ -143,28 +173,39 @@ class _MyHomePageState extends State<MyHomePage> {
 
                   Color color1 = baseColor[800];
                   Color color2 = baseColor[400];
+
+                  var alreadySaved = emergencyContact.contains(contact);
+                  var avatarProfile = contact.avatar != null && contact.avatar.length > 0;
                   return ListTile(
                       title: Text(contact.displayName),
                       subtitle: Text(
                           contact.phones.length > 0 ? contact.phones.elementAt(0).value : ''
                       ),
-                      trailing: (contact.avatar != null && contact.avatar.length > 0) ?
-                      CircleAvatar(
-                        backgroundImage: MemoryImage(contact.avatar),
-                      ) :
-                      Container(
-                          decoration: BoxDecoration(
+                      trailing: (
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                          Icon(
+                              alreadySaved ? Icons.favorite : Icons.favorite_border,
+                              color: alreadySaved ? Colors.red : null
+                          ),
+                          avatarProfile?
+                          CircleAvatar(
+                            backgroundImage: MemoryImage(contact.avatar),
+                          ) :
+                          Container(
+                            decoration: BoxDecoration(
                               shape: BoxShape.rectangle,
-                              gradient: LinearGradient(
+                                gradient: LinearGradient(
                                   colors: [
                                     color1,
                                     color2,
                                   ],
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight
-                              )
-                          ),
-                          child: CircleAvatar(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight
+                                )
+                            ),
+                            child: CircleAvatar(
                               child: Text(
                                   contact.initials(),
                                   style: TextStyle(
@@ -172,8 +213,20 @@ class _MyHomePageState extends State<MyHomePage> {
                                   )
                               ),
                               backgroundColor: Colors.transparent
+                            )
                           )
-                      )
+                        ])
+                      ),
+                      onTap: () {
+                        setState(() {
+                          if(alreadySaved) {
+                            emergencyContact.remove(contact);
+                          }
+                          else{
+                            emergencyContact.add(contact);
+                          }
+                        });
+                      }
                   );
                 },
               ),
