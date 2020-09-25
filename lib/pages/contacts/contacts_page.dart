@@ -3,7 +3,10 @@ import 'package:contacts_service/contacts_service.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class ContactsPage extends StatefulWidget {
-  ContactsPage({Key key, this.title}) : super(key: key);
+
+  ContactsPage({Key key, this.title}) : super(key: key) {
+    print("BATMAN");
+  }
 
   final String title;
 
