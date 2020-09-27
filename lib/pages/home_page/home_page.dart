@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
+import 'package:the_yagi_project/models/settings/settings.dart';
 import 'package:the_yagi_project/services/location.dart';
+import 'package:the_yagi_project/services/sms.dart';
 import 'package:the_yagi_project/threat_meter/threat_level.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter_thumb_shape.dart';
-import 'package:the_yagi_project/models/settings/settings.dart';
-import 'package:the_yagi_project/services/sms.dart';
 
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title, this.settings}) : super(key: key);
@@ -105,30 +106,23 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _handleThumbRelease(double value, int now) async {
-    String mapsUrl = 'await getMapsUrl()';
+  void _handleThumbRelease(double value, int now) {
     if (value >= _warningValue && value < _alertValue) {
       if (_currentThreatLevel != ThreatLevel.caution) {
-        print('asdfasdf' + widget.settings.messageTemplate.getCautionMessage());
         // first time
-        sendSMS('2063269710', widget.settings.messageTemplate.getCautionMessage());
-        print(mapsUrl);
+        _sendMessage('2063269710', widget.settings.messageTemplate.getCautionMessage());
       } else if (_canSendMessage(now)) {
         // if we did this action repeatedly
-        print("YELLOW2");
-        print(mapsUrl);
+        _sendMessage('2063269710', widget.settings.messageTemplate.getCautionMessage());
       }
     } else if (value >= _alertValue) {
       if (_currentThreatLevel != ThreatLevel.highThreat) {
-        print("RED1");
-        print(mapsUrl);
+        _sendMessage('2063269710', widget.settings.messageTemplate.getHighThreatMessage());
       } else if (_canSendMessage(now)) {
-        print("RED2");
-        print(mapsUrl);
+        _sendMessage('2063269710', widget.settings.messageTemplate.getHighThreatMessage());
       }
     } else if(_currentThreatLevel != ThreatLevel.noThreat) {
-      print("BACK TO SAFETY");
-      print(mapsUrl);
+      _sendMessage('2063269710', widget.settings.messageTemplate.getNoThreatMessage());
     }
 
     _thumbShape = ThreatMeterThumbShape();
@@ -148,5 +142,14 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _canSendMessage(int now) {
     // We can send a message if it's been 10 seconds since the previous message
     return now - _lastThreatLevelModifiedTime >= 10 * 1000;
+  }
+
+  void _sendMessage(String number, String message) async {
+    sendSMS(number, message);
+    String mapsUrl = await getMapsUrl();
+    print(mapsUrl);
+    Fluttertoast.showToast(
+        msg: "You sent an alert.",
+    );
   }
 }
