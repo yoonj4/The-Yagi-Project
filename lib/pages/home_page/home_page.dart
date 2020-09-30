@@ -111,29 +111,23 @@ class _MyHomePageState extends State<MyHomePage> {
     if (value >= _warningValue && value < _alertValue) {
       if (_currentThreatLevel != ThreatLevel.caution) {
         // first time
-        _sendMessage('2063269710', widget.settings.messageTemplate.getCautionMessage());
+        _sendMessage('2063269710', widget.settings.messageTemplate.getCautionMessage(), now, _convertToThreatLevel(value));
       } else if (_canSendMessage(now)) {
         // if we did this action repeatedly
-        _sendMessage('2063269710', widget.settings.messageTemplate.getCautionMessage());
+        _sendMessage('2063269710', widget.settings.messageTemplate.getCautionMessage(), now, _convertToThreatLevel(value));
       }
     } else if (value >= _alertValue) {
       if (_currentThreatLevel != ThreatLevel.highThreat) {
-        _sendMessage('2063269710', widget.settings.messageTemplate.getHighThreatMessage());
+        _sendMessage('2063269710', widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value));
       } else if (_canSendMessage(now)) {
-        _sendMessage('2063269710', widget.settings.messageTemplate.getHighThreatMessage());
+        _sendMessage('2063269710', widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value));
       }
     } else if(_currentThreatLevel != ThreatLevel.noThreat) {
-      _sendMessage('2063269710', widget.settings.messageTemplate.getNoThreatMessage());
+      _sendMessage('2063269710', widget.settings.messageTemplate.getNoThreatMessage(), now, _convertToThreatLevel(value));
     }
 
     _thumbShape = ThreatMeterThumbShape();
-    if (value >= _warningValue && value < _alertValue) {
-      _currentThreatLevel = ThreatLevel.caution;
-    } else if (value >= _alertValue) {
-      _currentThreatLevel = ThreatLevel.highThreat;
-    } else if (value < _warningValue) {
-      _currentThreatLevel = ThreatLevel.noThreat;
-    }
+   _currentThreatLevel = _convertToThreatLevel(value);
 
     if (_canSendMessage(now)) {
       _lastThreatLevelModifiedTime = now;
@@ -145,7 +139,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return now.isAfter(_lastThreatLevelModifiedTime.add(const Duration(seconds: 10)));
   }
 
-  void _sendMessage(String number, String message) async {
+  void _sendMessage(String number, String message, DateTime now, ThreatLevel threatLevel) async {
     sendSMS(number, message);
     String mapsUrl = await getMapsUrl();
     print(mapsUrl);
@@ -153,7 +147,18 @@ class _MyHomePageState extends State<MyHomePage> {
         msg: "You sent an alert.",
     );
     Event(
-      null,null,null,null,null
+      now, mapsUrl, threatLevel, message, null
     );
   }
+
+  ThreatLevel _convertToThreatLevel(double value){
+    if (value >= _warningValue && value < _alertValue) {
+      return ThreatLevel.caution;
+    } else if (value >= _alertValue) {
+      return ThreatLevel.highThreat;
+    } else if (value < _warningValue) {
+      return ThreatLevel.noThreat;
+    }
+  }
 }
+
