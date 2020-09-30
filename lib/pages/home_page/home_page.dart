@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:the_yagi_project/models/event.dart';
 
 import 'package:the_yagi_project/models/settings/settings.dart';
 import 'package:the_yagi_project/services/location.dart';
@@ -33,7 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   double _value = 0.0;
   ThreatLevel _currentThreatLevel = ThreatLevel.noThreat;
-  int _lastThreatLevelModifiedTime = -1;  // represented in milliseconds since epoch. -1 is the value to represent it's never been set.
+  DateTime _lastThreatLevelModifiedTime = DateTime.fromMillisecondsSinceEpoch(0);  // represented in milliseconds since epoch. -1 is the value to represent it's never been set.
   SliderComponentShape _thumbShape = ThreatMeterThumbShape();
 
   @override
@@ -70,7 +71,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   });
                 },
                 onChangeEnd: (double value) {
-                  int now = DateTime.now().millisecondsSinceEpoch;
+                  DateTime now = DateTime.now();
                   setState(() {
                     _handleThumbRelease(value, now);
                   });
@@ -106,7 +107,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _handleThumbRelease(double value, int now) {
+  void _handleThumbRelease(double value, DateTime now) {
     if (value >= _warningValue && value < _alertValue) {
       if (_currentThreatLevel != ThreatLevel.caution) {
         // first time
@@ -139,9 +140,9 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  bool _canSendMessage(int now) {
+  bool _canSendMessage(DateTime now) {
     // We can send a message if it's been 10 seconds since the previous message
-    return now - _lastThreatLevelModifiedTime >= 10 * 1000;
+    return now.isAfter(_lastThreatLevelModifiedTime.add(const Duration(seconds: 10)));
   }
 
   void _sendMessage(String number, String message) async {
@@ -150,6 +151,9 @@ class _MyHomePageState extends State<MyHomePage> {
     print(mapsUrl);
     Fluttertoast.showToast(
         msg: "You sent an alert.",
+    );
+    Event(
+      null,null,null,null,null
     );
   }
 }
