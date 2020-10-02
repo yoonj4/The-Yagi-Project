@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:hive/hive.dart';
 import 'package:the_yagi_project/models/event.dart';
 
 import 'package:the_yagi_project/models/settings/settings.dart';
@@ -27,6 +28,7 @@ class MyHomePage extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
+
 
 class _MyHomePageState extends State<MyHomePage> {
   double _warningValue = 0.5;
@@ -144,11 +146,21 @@ class _MyHomePageState extends State<MyHomePage> {
     String mapsUrl = await getMapsUrl();
     print(mapsUrl);
     Fluttertoast.showToast(
-        msg: "You sent an alert.",
+      msg: "You sent an alert.",
     );
-    Event(
-      now, mapsUrl, threatLevel, message, null
+    //persistEvent();
+
+    var events = await Hive.openBox<Event>('events');
+    await events.add(
+      Event(
+        eventDateTime: now,
+        location: mapsUrl,
+        threatLevel: threatLevel,
+        message: message,
+        emergencyContacts: null
+      )
     );
+    print(events.values);
   }
 
   ThreatLevel _convertToThreatLevel(double value){

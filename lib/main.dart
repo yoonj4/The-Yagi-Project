@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:the_yagi_project/models/settings/message_template.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:the_yagi_project/pages/settings/settings_page.dart';
 import 'package:the_yagi_project/pages/contacts/contacts_page.dart';
 import 'package:the_yagi_project/pages/log/log_page.dart';
 import 'package:the_yagi_project/pages/about/about_page.dart';
 import 'package:the_yagi_project/pages/home_page//home_page.dart';
 import 'package:the_yagi_project/models/settings/settings.dart';
+import 'package:the_yagi_project/threat_meter/threat_level.dart';
+import 'models/event.dart';
 
-void main() {
+void main() async {
+  await Hive.initFlutter();
+  Hive.registerAdapter(EventAdapter());
+  Hive.registerAdapter(ThreatLevelAdapter());
   runApp(MyApp());
 }
 
