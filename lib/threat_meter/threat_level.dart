@@ -1,7 +1,6 @@
 import 'package:hive/hive.dart';
 part 'threat_level.g.dart';
 
-
 @HiveType(typeId: 1)
 enum ThreatLevel {
   @HiveField(0)
