@@ -82,6 +82,7 @@ class _ContactsPageState extends State<ContactsPage> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
             Container( // This container for Emergency Contacts
+              height: (MediaQuery.of(context).size.height) / 2,
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: emergencyContacts.length,
