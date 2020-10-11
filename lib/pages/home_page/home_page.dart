@@ -150,7 +150,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
     //persistEvent();
 
-    var events = await Hive.openBox<Event>('events');
+    var events = Hive.box<Event>('events');
     await events.add(
       Event(
         eventDateTime: now,

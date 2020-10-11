@@ -8,6 +8,7 @@ import 'package:the_yagi_project/pages/about/about_page.dart';
 import 'package:the_yagi_project/pages/home_page//home_page.dart';
 import 'package:the_yagi_project/models/settings/settings.dart';
 import 'package:the_yagi_project/threat_meter/threat_level.dart';
+import 'models/contacts.dart';
 import 'models/event.dart';
 
 void main() async {
@@ -15,6 +16,8 @@ void main() async {
   Hive.registerAdapter(EventAdapter());
   Hive.registerAdapter(ThreatLevelAdapter());
   Hive.registerAdapter(EmergencyContactAdapter());
+  await Hive.openBox<Event>('events');
+  await Hive.openBox<EmergencyContact>('emergency');
   runApp(MyApp());
 }
 
@@ -57,10 +60,9 @@ class _MyAppState extends State<MyApp> {
           // closer together (more dense) than on mobile platforms.
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        initialRoute: '/home',
+        initialRoute: '/',
         routes: {
-          '/': (context) => MyHomePage(title: 'Flutter Demo Home Page'),
-          '/home': (context) => MyHomePage(title: 'Home Page', settings: _settings),
+          '/': (context) => MyHomePage(title: 'Home Page', settings: _settings),
           '/contacts': (context) => ContactsPage(title: 'Contacts Page'),
           '/log': (context) => LogPage(title: 'Log Page'),
           '/settings': (context) => SettingsPage(title: 'Settings Page'),

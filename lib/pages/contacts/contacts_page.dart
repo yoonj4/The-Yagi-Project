@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:contacts_service/contacts_service.dart';
+import 'package:hive/hive.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:the_yagi_project/models/contacts.dart';
 
 class ContactsPage extends StatefulWidget {
 
@@ -15,20 +17,19 @@ class ContactsPage extends StatefulWidget {
 }
 
 class _ContactsPageState extends State<ContactsPage> {
-  var emergencyContact = await Hive.openBox<Event>('emergency')
+  Box<EmergencyContact> emergencyContacts;
   List<Contact> contacts = [];
-  List<Contact> emergencyContact = [];
   Map<String, Color> contactsColorMap = new Map();
-  TextEditingController searchController = new TextEditingController();
+
 
   @override
   void initState() {
     super.initState();
-    getPermissions();
+    getContacts();
   }
-  getPermissions() async {
+  getContacts() async {
     if (await Permission.contacts.request().isGranted) {
-      getAllContacts();
+      await getAllContacts();
     }
   }
 
@@ -55,6 +56,7 @@ class _ContactsPageState extends State<ContactsPage> {
         colorIndex = 0;
       }
     });
+    _contacts.removeWhere((contact) => contact.phones.length == 0);
     setState(() {
       contacts = _contacts;
     });
@@ -62,7 +64,7 @@ class _ContactsPageState extends State<ContactsPage> {
 
   @override
   Widget build(BuildContext context) {
-    bool isSearching = searchController.text.isNotEmpty;
+    emergencyContacts = Hive.box<EmergencyContact>('emergency');
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
@@ -82,7 +84,7 @@ class _ContactsPageState extends State<ContactsPage> {
             Container( // This container for Emergency Contacts
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: emergencyContact.length,
+                itemCount: emergencyContacts.length,
                 itemBuilder: (context, index) {
 /*
  Will be used when avatars are added to emergency list
@@ -97,18 +99,15 @@ class _ContactsPageState extends State<ContactsPage> {
                 Color color2 = baseColor[400];
 
  */
-                  if (emergencyContact.length == 0) {
+                  if (emergencyContacts.length == 0) {
                     return null;
                   }
                   else {
                     return ListTile(
-                      title: Text(emergencyContact[index].displayName),
+                      title: Text(emergencyContacts.getAt(index).name),
                       subtitle: Text(
-                          emergencyContact[index].phones.length > 0 ? emergencyContact[index].phones
-                              .elementAt(0)
-                              .value : ''
+                          emergencyContacts.getAt(index).number
                       ),
-
                     );
                   }
                 },
@@ -126,12 +125,13 @@ class _ContactsPageState extends State<ContactsPage> {
                 shrinkWrap: true,
                 itemCount: contacts.length,
                 itemBuilder: (context, index) {
+                  Contact contact = contacts[index];
                   var baseColor = contactsColorMap[contact.displayName] as dynamic;
 
                   Color color1 = baseColor[800];
                   Color color2 = baseColor[400];
 
-                  var alreadySaved = emergencyContact.contains(contact);
+                  bool alreadySaved = emergencyContacts.get(contact.displayName) != null;
                   var avatarProfile = contact.avatar != null && contact.avatar.length > 0;
                   return ListTile(
                       title: Text(contact.displayName),
@@ -176,26 +176,18 @@ class _ContactsPageState extends State<ContactsPage> {
                       ),
                       onTap: () {
                         setState(() {
-
-
                           if(alreadySaved) {
-                            emergencyContact.remove(contact);
-
-                            emergencyContact.delete(
-                              EmergencyContact(
-                                name: contact.displayName.toLowerCase(),
-                                number: contact.
-                              )
-                            )
+                            emergencyContacts.delete(
+                              contact.displayName);
                           }
                           else{
-                            emergencyContact.add(contact);
-
-                            await emergencyContact.delete(
-                                EmergencyContact(
-                                name: contact.displayName.toLowerCase(),
-                                number: contact.phn
-                                )
+                            emergencyContacts.put(
+                              contact.displayName,
+                              EmergencyContact(
+                                  name: contact.displayName,
+                                  number: contact.phones.elementAt(0).value
+                              )
+                            );
                           }
                         });
                       }
