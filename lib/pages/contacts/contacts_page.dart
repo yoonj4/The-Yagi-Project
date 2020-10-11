@@ -15,8 +15,8 @@ class ContactsPage extends StatefulWidget {
 }
 
 class _ContactsPageState extends State<ContactsPage> {
+  var emergencyContact = await Hive.openBox<Event>('emergency')
   List<Contact> contacts = [];
-  List<Contact> contactsFiltered = [];
   List<Contact> emergencyContact = [];
   Map<String, Color> contactsColorMap = new Map();
   TextEditingController searchController = new TextEditingController();
@@ -29,9 +29,6 @@ class _ContactsPageState extends State<ContactsPage> {
   getPermissions() async {
     if (await Permission.contacts.request().isGranted) {
       getAllContacts();
-      searchController.addListener(() {
-        filterContacts();
-      });
     }
   }
 
@@ -63,36 +60,6 @@ class _ContactsPageState extends State<ContactsPage> {
     });
   }
 
-  filterContacts() {
-    List<Contact> _contacts = [];
-    _contacts.addAll(contacts);
-    if (searchController.text.isNotEmpty) {
-      _contacts.retainWhere((contact) {
-        String searchTerm = searchController.text.toLowerCase();
-        String searchTermFlatten = flattenPhoneNumber(searchTerm);
-        String contactName = contact.displayName.toLowerCase();
-        bool nameMatches = contactName.contains(searchTerm);
-        if (nameMatches == true) {
-          return true;
-        }
-
-        if (searchTermFlatten.isEmpty) {
-          return false;
-        }
-
-        var phone = contact.phones.firstWhere((phn) {
-          String phnFlattened = flattenPhoneNumber(phn.value);
-          return phnFlattened.contains(searchTermFlatten);
-        }, orElse: () => null);
-
-        return phone != null;
-      });
-    }
-    setState(() {
-      contactsFiltered = _contacts;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     bool isSearching = searchController.text.isNotEmpty;
@@ -112,7 +79,7 @@ class _ContactsPageState extends State<ContactsPage> {
               'Emergency Contact',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
-            Container(
+            Container( // This container for Emergency Contacts
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: emergencyContact.length,
@@ -154,13 +121,11 @@ class _ContactsPageState extends State<ContactsPage> {
                 'Contacts',
                 style: (TextStyle(fontWeight: FontWeight.bold, fontSize:20))
             ),
-            Expanded(
+            Expanded( // This container for full contacts list.
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: isSearching == true ? contactsFiltered.length : contacts.length,
+                itemCount: contacts.length,
                 itemBuilder: (context, index) {
-                  Contact contact = isSearching == true ? contactsFiltered[index] : contacts[index];
-
                   var baseColor = contactsColorMap[contact.displayName] as dynamic;
 
                   Color color1 = baseColor[800];
@@ -211,11 +176,26 @@ class _ContactsPageState extends State<ContactsPage> {
                       ),
                       onTap: () {
                         setState(() {
+
+
                           if(alreadySaved) {
                             emergencyContact.remove(contact);
+
+                            emergencyContact.delete(
+                              EmergencyContact(
+                                name: contact.displayName.toLowerCase(),
+                                number: contact.
+                              )
+                            )
                           }
                           else{
                             emergencyContact.add(contact);
+
+                            await emergencyContact.delete(
+                                EmergencyContact(
+                                name: contact.displayName.toLowerCase(),
+                                number: contact.phn
+                                )
                           }
                         });
                       }

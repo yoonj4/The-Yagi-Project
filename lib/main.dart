@@ -14,6 +14,7 @@ void main() async {
   await Hive.initFlutter();
   Hive.registerAdapter(EventAdapter());
   Hive.registerAdapter(ThreatLevelAdapter());
+  Hive.registerAdapter(EmergencyContactAdapter());
   runApp(MyApp());
 }
 
