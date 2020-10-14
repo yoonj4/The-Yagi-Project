@@ -3,6 +3,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:the_yagi_project/models/settings/settings.dart';
 import 'package:the_yagi_project/services/location.dart';
+import 'package:the_yagi_project/services/phone.dart';
 import 'package:the_yagi_project/services/sms.dart';
 import 'package:the_yagi_project/threat_meter/threat_level.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter.dart';
@@ -118,8 +119,10 @@ class _MyHomePageState extends State<MyHomePage> {
     } else if (value >= _alertValue) {
       if (_currentThreatLevel != ThreatLevel.highThreat) {
         _sendMessage('2063269710', widget.settings.messageTemplate.getHighThreatMessage());
+        makePhoneCall('2063269710', false);
       } else if (_canSendMessage(now)) {
         _sendMessage('2063269710', widget.settings.messageTemplate.getHighThreatMessage());
+        makePhoneCall('2063269710', false);
       }
     } else if(_currentThreatLevel != ThreatLevel.noThreat) {
       _sendMessage('2063269710', widget.settings.messageTemplate.getNoThreatMessage());
