@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hive/hive.dart';
+import 'package:the_yagi_project/models/contacts.dart';
 import 'package:the_yagi_project/models/event.dart';
 
 import 'package:the_yagi_project/models/settings/settings.dart';
@@ -38,9 +39,14 @@ class _MyHomePageState extends State<MyHomePage> {
   ThreatLevel _currentThreatLevel = ThreatLevel.noThreat;
   DateTime _lastThreatLevelModifiedTime = DateTime.fromMillisecondsSinceEpoch(0);  // represented in milliseconds since epoch. -1 is the value to represent it's never been set.
   SliderComponentShape _thumbShape = ThreatMeterThumbShape();
+  Box<EmergencyContact> emergencyContacts;
 
   @override
   Widget build(BuildContext context) {
+    emergencyContacts = Hive.box<EmergencyContact>('emergency');
+    // TODO need to convert box to list
+
+
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -148,7 +154,6 @@ class _MyHomePageState extends State<MyHomePage> {
     Fluttertoast.showToast(
       msg: "You sent an alert.",
     );
-    //persistEvent();
 
     var events = Hive.box<Event>('events');
     await events.add(
@@ -157,7 +162,7 @@ class _MyHomePageState extends State<MyHomePage> {
         location: mapsUrl,
         threatLevel: threatLevel,
         message: message,
-        emergencyContacts: null
+        emergencyContacts: emergencyContacts,
       )
     );
     print(events.values);
