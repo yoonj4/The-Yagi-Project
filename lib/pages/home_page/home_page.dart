@@ -44,8 +44,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     emergencyContacts = Hive.box<EmergencyContact>('emergency');
-    // TODO need to convert box to list
-
 
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
@@ -119,19 +117,19 @@ class _MyHomePageState extends State<MyHomePage> {
     if (value >= _warningValue && value < _alertValue) {
       if (_currentThreatLevel != ThreatLevel.caution) {
         // first time
-        _sendMessage('2063269710', widget.settings.messageTemplate.getCautionMessage(), now, _convertToThreatLevel(value));
+        _sendMessage(widget.settings.messageTemplate.getCautionMessage(), now, _convertToThreatLevel(value));
       } else if (_canSendMessage(now)) {
         // if we did this action repeatedly
-        _sendMessage('2063269710', widget.settings.messageTemplate.getCautionMessage(), now, _convertToThreatLevel(value));
+        _sendMessage(widget.settings.messageTemplate.getCautionMessage(), now, _convertToThreatLevel(value));
       }
     } else if (value >= _alertValue) {
       if (_currentThreatLevel != ThreatLevel.highThreat) {
-        _sendMessage('2063269710', widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value));
+        _sendMessage(widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value));
       } else if (_canSendMessage(now)) {
-        _sendMessage('2063269710', widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value));
+        _sendMessage(widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value));
       }
     } else if(_currentThreatLevel != ThreatLevel.noThreat) {
-      _sendMessage('2063269710', widget.settings.messageTemplate.getNoThreatMessage(), now, _convertToThreatLevel(value));
+      _sendMessage(widget.settings.messageTemplate.getNoThreatMessage(), now, _convertToThreatLevel(value));
     }
 
     _thumbShape = ThreatMeterThumbShape();
@@ -147,10 +145,13 @@ class _MyHomePageState extends State<MyHomePage> {
     return now.isAfter(_lastThreatLevelModifiedTime.add(const Duration(seconds: 10)));
   }
 
-  void _sendMessage(String number, String message, DateTime now, ThreatLevel threatLevel) async {
-    sendSMS(number, message);
+  void _sendMessage(String message, DateTime now, ThreatLevel threatLevel) async {
+    Iterable currentEmergencyContacts = emergencyContacts.values;
+    currentEmergencyContacts.forEach((emergencyContact) {
+      sendSMS(emergencyContact.number, message);
+    });
+
     String mapsUrl = await getMapsUrl();
-    print(mapsUrl);
     Fluttertoast.showToast(
       msg: "You sent an alert.",
     );
@@ -162,10 +163,9 @@ class _MyHomePageState extends State<MyHomePage> {
         location: mapsUrl,
         threatLevel: threatLevel,
         message: message,
-        emergencyContacts: emergencyContacts,
+        emergencyContacts: currentEmergencyContacts.toList(),
       )
     );
-    print(events.values);
   }
 
   ThreatLevel _convertToThreatLevel(double value){
