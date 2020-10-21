@@ -49,60 +49,55 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text('widget.title'),
       ),
-      body: Column(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-          children: [
-            RotatedBox(
-              quarterTurns: 3,
-              child: ThreatMeter(
-                value: _value,
-                thumbShape: _thumbShape,
-                onChanged: (double value) {
-                  setState(() {
-                    _value = value;
-                  });
-                },
-                onChangeStart: (double value) {
-                  setState(() {
-                    _thumbShape = DraggingThreatMeterThumbShape();
-                  });
-                },
-                onChangeEnd: (double value) {
-                  int now = DateTime.now().millisecondsSinceEpoch;
-                  setState(() {
-                    _handleThumbRelease(value, now);
-                  });
-                },
-              ),
-            ),
-            Row(
-              children: [
-                Expanded( child: FlatButton(
-                    onPressed: (){ Navigator.pushNamed(context, '/contacts'); },
-                    color: Colors.amber,
-                    child: Text('Contacts')
-                )),
-                Expanded( child: FlatButton(
-                    onPressed: (){ Navigator.pushNamed(context, '/settings'); },
-                    color: Colors.amber,
-                    child: Text('Settings')
-                )),
-                Expanded( child: FlatButton(
-                    onPressed: (){ Navigator.pushNamed(context, '/log'); },
-                    color: Colors.amber,
-                    child: Text('Log')
-                )),
-                Expanded( child: FlatButton(
-                    onPressed: (){ Navigator.pushNamed(context, '/about'); },
-                    color: Colors.amber,
-                    child: Text('About')
-                )),
-              ],
-            )
-          ]
+      body: RotatedBox(
+        quarterTurns: 3,
+        child: ThreatMeter(
+          value: _value,
+          thumbShape: _thumbShape,
+          onChanged: (double value) {
+            setState(() {
+              _value = value;
+            });
+          },
+          onChangeStart: (double value) {
+            setState(() {
+              _thumbShape = DraggingThreatMeterThumbShape();
+            });
+          },
+          onChangeEnd: (double value) {
+            int now = DateTime.now().millisecondsSinceEpoch;
+            setState(() {
+              _handleThumbRelease(value, now);
+            });
+          },
+        ),
+      ),
+      bottomNavigationBar: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded( child: FlatButton(
+              onPressed: (){ Navigator.pushNamed(context, '/contacts'); },
+              color: Colors.amber,
+              child: Text('Contacts')
+          )),
+          Expanded( child: FlatButton(
+              onPressed: (){ Navigator.pushNamed(context, '/settings'); },
+              color: Colors.amber,
+              child: Text('Settings')
+          )),
+          Expanded( child: FlatButton(
+              onPressed: (){ Navigator.pushNamed(context, '/log'); },
+              color: Colors.amber,
+              child: Text('Log')
+          )),
+          Expanded( child: FlatButton(
+              onPressed: (){ Navigator.pushNamed(context, '/about'); },
+              color: Colors.amber,
+              child: Text('About')
+          )),
+        ],
       ),
     );
   }
