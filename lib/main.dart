@@ -18,6 +18,9 @@ void main() async {
   Hive.registerAdapter(EmergencyContactAdapter());
   await Hive.openBox<Event>('events');
   await Hive.openBox<EmergencyContact>('emergency');
+
+  // Hive.box<Event>('events').clear();
+
   runApp(MyApp());
 }
 
