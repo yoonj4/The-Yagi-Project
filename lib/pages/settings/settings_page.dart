@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:the_yagi_project/models/settings/settings.dart';
 
 class SettingsPage extends StatefulWidget {
-  SettingsPage({Key key, this.title}) : super(key: key);
+  SettingsPage({Key key, this.title, this.settings}) : super(key: key);
 
   final String title;
+  final Settings settings;
 
   @override
   _MySettingsState createState() => _MySettingsState();
@@ -27,18 +29,21 @@ class _MySettingsState extends State<SettingsPage> {
             decoration: InputDecoration(
               border: OutlineInputBorder(),
             ),
+            controller: new TextEditingController(text: widget.settings.messageTemplate.getNoThreatMessage()),
           ),
           new Text("Message to send when you feel in danger."),
           new TextField(
             decoration: InputDecoration(
               border: OutlineInputBorder(),
             ),
+            controller: new TextEditingController(text: widget.settings.messageTemplate.getCautionMessage()),
           ),
           new Text("Message to send when you're in danger."),
           new TextField(
             decoration: InputDecoration(
               border: OutlineInputBorder(),
             ),
+            controller: new TextEditingController(text: widget.settings.messageTemplate.getHighThreatMessage()),
           ),
         ],
       ),
