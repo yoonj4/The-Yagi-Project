@@ -19,7 +19,29 @@ class _MySettingsState extends State<SettingsPage> {
         title: Text(widget.title),
         centerTitle: true,
         elevation: 0,
-      )
+      ),
+      body: new Column(
+        children: [
+          new Text("Message to send when you're safe."),
+          new TextField(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+            ),
+          ),
+          new Text("Message to send when you feel in danger."),
+          new TextField(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+            ),
+          ),
+          new Text("Message to send when you're in danger."),
+          new TextField(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
