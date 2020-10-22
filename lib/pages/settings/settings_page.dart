@@ -17,6 +17,18 @@ class _MySettingsState extends State<SettingsPage> {
     TextEditingController noThreatController = new TextEditingController(text: widget.settings.messageTemplate.getNoThreatMessage());
     TextEditingController cautionController = new TextEditingController(text: widget.settings.messageTemplate.getCautionMessage());
     TextEditingController highThreatController = new TextEditingController(text: widget.settings.messageTemplate.getHighThreatMessage());
+    
+    noThreatController.addListener(() { 
+      widget.settings.messageTemplate.setNoThreatMessage(noThreatController.text);
+    });
+
+    cautionController.addListener(() {
+      widget.settings.messageTemplate.setCautionMessage(cautionController.text);
+    });
+
+    highThreatController.addListener(() {
+      widget.settings.messageTemplate.setHighThreatMessage(highThreatController.text);
+    });
 
     return Scaffold(
       backgroundColor: Colors.grey[200],
