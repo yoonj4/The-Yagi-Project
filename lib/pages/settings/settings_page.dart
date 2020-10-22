@@ -14,6 +14,10 @@ class SettingsPage extends StatefulWidget {
 class _MySettingsState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
+    TextEditingController noThreatController = new TextEditingController(text: widget.settings.messageTemplate.getNoThreatMessage());
+    TextEditingController cautionController = new TextEditingController(text: widget.settings.messageTemplate.getCautionMessage());
+    TextEditingController highThreatController = new TextEditingController(text: widget.settings.messageTemplate.getHighThreatMessage());
+
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
@@ -29,21 +33,21 @@ class _MySettingsState extends State<SettingsPage> {
             decoration: InputDecoration(
               border: OutlineInputBorder(),
             ),
-            controller: new TextEditingController(text: widget.settings.messageTemplate.getNoThreatMessage()),
+            controller: noThreatController,
           ),
           new Text("Message to send when you feel in danger."),
           new TextField(
             decoration: InputDecoration(
               border: OutlineInputBorder(),
             ),
-            controller: new TextEditingController(text: widget.settings.messageTemplate.getCautionMessage()),
+            controller: cautionController,
           ),
           new Text("Message to send when you're in danger."),
           new TextField(
             decoration: InputDecoration(
               border: OutlineInputBorder(),
             ),
-            controller: new TextEditingController(text: widget.settings.messageTemplate.getHighThreatMessage()),
+            controller: highThreatController,
           ),
         ],
       ),
