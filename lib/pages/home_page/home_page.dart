@@ -143,9 +143,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _sendMessage(String number, String message) async {
-    sendSMS(number, message);
     String mapsUrl = await getMapsUrl();
-    print(mapsUrl);
+    sendSMS(number, message + " " + mapsUrl);
     Fluttertoast.showToast(
         msg: "You sent an alert.",
     );
