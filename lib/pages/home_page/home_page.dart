@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -29,6 +30,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  double _meterPadding = 150;  // Increasing this moves the threat meter more to the right.
+
   double _warningValue = 0.5;
   double _alertValue = 1;
 
@@ -49,29 +52,32 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text('widget.title'),
+        title: Text(widget.title),
       ),
-      body: RotatedBox(
-        quarterTurns: 3,
-        child: ThreatMeter(
-          value: _value,
-          thumbShape: _thumbShape,
-          onChanged: (double value) {
-            setState(() {
-              _value = value;
-            });
-          },
-          onChangeStart: (double value) {
-            setState(() {
-              _thumbShape = DraggingThreatMeterThumbShape();
-            });
-          },
-          onChangeEnd: (double value) {
-            int now = DateTime.now().millisecondsSinceEpoch;
-            setState(() {
-              _handleThumbRelease(value, now);
-            });
-          },
+      body: Container(
+        padding: EdgeInsets.only(left: _meterPadding),
+        child: RotatedBox(
+          quarterTurns: 3,
+          child: ThreatMeter(
+            value: _value,
+            thumbShape: _thumbShape,
+            onChanged: (double value) {
+              setState(() {
+                _value = value;
+              });
+            },
+            onChangeStart: (double value) {
+              setState(() {
+                _thumbShape = DraggingThreatMeterThumbShape();
+              });
+            },
+            onChangeEnd: (double value) {
+              int now = DateTime.now().millisecondsSinceEpoch;
+              setState(() {
+                _handleThumbRelease(value, now);
+              });
+            },
+          ),
         ),
       ),
       bottomNavigationBar: Row(
