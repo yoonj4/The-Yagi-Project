@@ -61,6 +61,18 @@ class _MySettingsState extends State<SettingsPage> {
             ),
             controller: highThreatController,
           ),
+          new Text("Yellow tick height setter."),
+          new TextField(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+            ),
+          ),
+          new Text("Red tick height setter."),
+          new TextField(
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+            ),
+          ),
         ],
       ),
     );

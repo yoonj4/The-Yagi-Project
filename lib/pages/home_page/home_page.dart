@@ -61,6 +61,8 @@ class _MyHomePageState extends State<MyHomePage> {
           child: ThreatMeter(
             value: _value,
             thumbShape: _thumbShape,
+            cautionHeight: 0.33,
+            highThreatHeight: 0.66,
             onChanged: (double value) {
               setState(() {
                 _value = value;
