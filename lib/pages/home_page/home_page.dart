@@ -1,8 +1,10 @@
+import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'dart:math' as math;
-
+import 'package:hive/hive.dart';
+import 'package:the_yagi_project/models/contacts.dart';
+import 'package:the_yagi_project/models/event.dart';
 import 'package:the_yagi_project/models/settings/settings.dart';
 import 'package:the_yagi_project/services/location.dart';
 import 'package:the_yagi_project/services/phone.dart';
@@ -30,6 +32,7 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+
 class _MyHomePageState extends State<MyHomePage> {
 
   double _warningValue = 0.5;
@@ -37,11 +40,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   double _value = 0.0;
   ThreatLevel _currentThreatLevel = ThreatLevel.noThreat;
-  int _lastThreatLevelModifiedTime = -1;  // represented in milliseconds since epoch. -1 is the value to represent it's never been set.
+  DateTime _lastThreatLevelModifiedTime = DateTime.fromMillisecondsSinceEpoch(0);  // represented in milliseconds since epoch. -1 is the value to represent it's never been set.
   SliderComponentShape _thumbShape = ThreatMeterThumbShape();
+  Box<EmergencyContact> emergencyContacts;
 
   @override
   Widget build(BuildContext context) {
+    emergencyContacts = Hive.box<EmergencyContact>('emergency');
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -100,7 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   });
                 },
                 onChangeEnd: (double value) {
-                  int now = DateTime.now().millisecondsSinceEpoch;
+                  DateTime now = DateTime.now();
                   setState(() {
                     _handleThumbRelease(value, now);
                   });
@@ -147,51 +152,70 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void _handleThumbRelease(double value, int now) {
+  void _handleThumbRelease(double value, DateTime now) {
     if (value >= _warningValue && value < _alertValue) {
       if (_currentThreatLevel != ThreatLevel.caution) {
         // first time
-        _sendMessage('2063269710', widget.settings.messageTemplate.getCautionMessage());
+        _sendMessage(widget.settings.messageTemplate.getCautionMessage(), now, _convertToThreatLevel(value));
       } else if (_canSendMessage(now)) {
         // if we did this action repeatedly
-        _sendMessage('2063269710', widget.settings.messageTemplate.getCautionMessage());
+        _sendMessage(widget.settings.messageTemplate.getCautionMessage(), now, _convertToThreatLevel(value));
       }
     } else if (value >= _alertValue) {
       if (_currentThreatLevel != ThreatLevel.highThreat) {
-        _sendMessage('2063269710', widget.settings.messageTemplate.getHighThreatMessage());
+        _sendMessage(widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value));
         makePhoneCall('2063269710', false);
       } else if (_canSendMessage(now)) {
-        _sendMessage('2063269710', widget.settings.messageTemplate.getHighThreatMessage());
+        _sendMessage(widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value));
         makePhoneCall('2063269710', false);
       }
     } else if(_currentThreatLevel != ThreatLevel.noThreat) {
-      _sendMessage('2063269710', widget.settings.messageTemplate.getNoThreatMessage());
+      _sendMessage(widget.settings.messageTemplate.getNoThreatMessage(), now, _convertToThreatLevel(value));
     }
 
     _thumbShape = ThreatMeterThumbShape();
-    if (value >= _warningValue && value < _alertValue) {
-      _currentThreatLevel = ThreatLevel.caution;
-    } else if (value >= _alertValue) {
-      _currentThreatLevel = ThreatLevel.highThreat;
-    } else if (value < _warningValue) {
-      _currentThreatLevel = ThreatLevel.noThreat;
-    }
+   _currentThreatLevel = _convertToThreatLevel(value);
 
     if (_canSendMessage(now)) {
       _lastThreatLevelModifiedTime = now;
     }
   }
 
-  bool _canSendMessage(int now) {
+  bool _canSendMessage(DateTime now) {
     // We can send a message if it's been 10 seconds since the previous message
-    return now - _lastThreatLevelModifiedTime >= 10 * 1000;
+    return now.isAfter(_lastThreatLevelModifiedTime.add(const Duration(seconds: 10)));
   }
 
-  void _sendMessage(String number, String message) async {
+  void _sendMessage(String message, DateTime now, ThreatLevel threatLevel) async {
+    Iterable currentEmergencyContacts = emergencyContacts.values;
     String mapsUrl = await getMapsUrl();
-    sendSMS(number, message + " " + mapsUrl);
+    currentEmergencyContacts.forEach((emergencyContact) {
+      sendSMS(emergencyContact.number, message + " " + mapsUrl);
+    });
     Fluttertoast.showToast(
-        msg: "You sent an alert.",
+      msg: "You sent an alert.",
+    );
+
+    var events = Hive.box<Event>('events');
+    await events.add(
+      Event(
+        eventDateTime: now,
+        location: mapsUrl,
+        threatLevel: threatLevel,
+        message: message,
+        emergencyContacts: currentEmergencyContacts.toList(),
+      )
     );
   }
+
+  ThreatLevel _convertToThreatLevel(double value){
+    if (value >= _warningValue && value < _alertValue) {
+      return ThreatLevel.caution;
+    } else if (value >= _alertValue) {
+      return ThreatLevel.highThreat;
+    } else if (value < _warningValue) {
+      return ThreatLevel.noThreat;
+    }
+  }
 }
+
