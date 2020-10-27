@@ -52,7 +52,6 @@ class _MyAppState extends State<MyApp> {
         ),
         initialRoute: '/home',
         routes: {
-          '/': (context) => MyHomePage(title: 'Flutter Demo Home Page'),
           '/home': (context) => MyHomePage(title: 'Home Page', settings: _settings),
           '/contacts': (context) => ContactsPage(title: 'Contacts Page'),
           '/log': (context) => LogPage(title: 'Log Page'),

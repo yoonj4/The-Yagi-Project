@@ -32,9 +32,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  double _warningValue = 0.5;
-  double _alertValue = 1;
-
   double _value = 0.0;
   ThreatLevel _currentThreatLevel = ThreatLevel.noThreat;
   int _lastThreatLevelModifiedTime = -1;  // represented in milliseconds since epoch. -1 is the value to represent it's never been set.
@@ -42,6 +39,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    Settings settings = this.widget.settings;
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -88,8 +86,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 ..rotateZ(-math.pi / 2),
               child: ThreatMeter(
                 value: _value,
-                cautionHeight: 0.33,
-                highThreatHeight: 0.66,
+                cautionHeight: settings.warningValue,
+                highThreatHeight: settings.alertValue,
                 thumbShape: _thumbShape,
                 onChanged: (double value) {
                   setState(() {
@@ -150,7 +148,8 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _handleThumbRelease(double value, int now) {
-    if (value >= _warningValue && value < _alertValue) {
+    Settings settings = this.widget.settings;
+    if (value >= settings.warningValue && value < settings.alertValue) {
       if (_currentThreatLevel != ThreatLevel.caution) {
         // first time
         _sendMessage('2063269710', widget.settings.messageTemplate.getCautionMessage());
@@ -158,7 +157,7 @@ class _MyHomePageState extends State<MyHomePage> {
         // if we did this action repeatedly
         _sendMessage('2063269710', widget.settings.messageTemplate.getCautionMessage());
       }
-    } else if (value >= _alertValue) {
+    } else if (value >= settings.alertValue) {
       if (_currentThreatLevel != ThreatLevel.highThreat) {
         _sendMessage('2063269710', widget.settings.messageTemplate.getHighThreatMessage());
         makePhoneCall('2063269710', false);
@@ -171,11 +170,11 @@ class _MyHomePageState extends State<MyHomePage> {
     }
 
     _thumbShape = ThreatMeterThumbShape();
-    if (value >= _warningValue && value < _alertValue) {
+    if (value >= settings.warningValue && value < settings.alertValue) {
       _currentThreatLevel = ThreatLevel.caution;
-    } else if (value >= _alertValue) {
+    } else if (value >= settings.alertValue) {
       _currentThreatLevel = ThreatLevel.highThreat;
-    } else if (value < _warningValue) {
+    } else if (value < settings.warningValue) {
       _currentThreatLevel = ThreatLevel.noThreat;
     }
 

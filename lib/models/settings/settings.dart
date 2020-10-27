@@ -8,7 +8,7 @@ class Settings {
 
   Settings() {
     messageTemplate = new MessageTemplate();
-    _initThresholdValues()
+    _initThresholdValues();
   }
 
   void _initThresholdValues() async {
