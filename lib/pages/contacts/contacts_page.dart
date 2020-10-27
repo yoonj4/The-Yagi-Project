@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:contacts_service/contacts_service.dart';
+import 'package:hive/hive.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:the_yagi_project/models/contacts.dart';
 
 class ContactsPage extends StatefulWidget {
 
@@ -15,23 +17,19 @@ class ContactsPage extends StatefulWidget {
 }
 
 class _ContactsPageState extends State<ContactsPage> {
+  Box<EmergencyContact> emergencyContacts;
   List<Contact> contacts = [];
-  List<Contact> contactsFiltered = [];
-  List<Contact> emergencyContact = [];
   Map<String, Color> contactsColorMap = new Map();
-  TextEditingController searchController = new TextEditingController();
+
 
   @override
   void initState() {
     super.initState();
-    getPermissions();
+    getContacts();
   }
-  getPermissions() async {
+  getContacts() async {
     if (await Permission.contacts.request().isGranted) {
-      getAllContacts();
-      searchController.addListener(() {
-        filterContacts();
-      });
+      await getAllContacts();
     }
   }
 
@@ -58,44 +56,15 @@ class _ContactsPageState extends State<ContactsPage> {
         colorIndex = 0;
       }
     });
+    _contacts.removeWhere((contact) => contact.phones.length == 0);
     setState(() {
       contacts = _contacts;
     });
   }
 
-  filterContacts() {
-    List<Contact> _contacts = [];
-    _contacts.addAll(contacts);
-    if (searchController.text.isNotEmpty) {
-      _contacts.retainWhere((contact) {
-        String searchTerm = searchController.text.toLowerCase();
-        String searchTermFlatten = flattenPhoneNumber(searchTerm);
-        String contactName = contact.displayName.toLowerCase();
-        bool nameMatches = contactName.contains(searchTerm);
-        if (nameMatches == true) {
-          return true;
-        }
-
-        if (searchTermFlatten.isEmpty) {
-          return false;
-        }
-
-        var phone = contact.phones.firstWhere((phn) {
-          String phnFlattened = flattenPhoneNumber(phn.value);
-          return phnFlattened.contains(searchTermFlatten);
-        }, orElse: () => null);
-
-        return phone != null;
-      });
-    }
-    setState(() {
-      contactsFiltered = _contacts;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
-    bool isSearching = searchController.text.isNotEmpty;
+    emergencyContacts = Hive.box<EmergencyContact>('emergency');
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
@@ -112,10 +81,11 @@ class _ContactsPageState extends State<ContactsPage> {
               'Emergency Contact',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
-            Container(
+            Container( // This container for Emergency Contacts
+              height: (MediaQuery.of(context).size.height) / 2,
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: emergencyContact.length,
+                itemCount: emergencyContacts.length,
                 itemBuilder: (context, index) {
 /*
  Will be used when avatars are added to emergency list
@@ -130,18 +100,15 @@ class _ContactsPageState extends State<ContactsPage> {
                 Color color2 = baseColor[400];
 
  */
-                  if (emergencyContact.length == 0) {
+                  if (emergencyContacts.length == 0) {
                     return null;
                   }
                   else {
                     return ListTile(
-                      title: Text(emergencyContact[index].displayName),
+                      title: Text(emergencyContacts.getAt(index).name),
                       subtitle: Text(
-                          emergencyContact[index].phones.length > 0 ? emergencyContact[index].phones
-                              .elementAt(0)
-                              .value : ''
+                          emergencyContacts.getAt(index).number
                       ),
-
                     );
                   }
                 },
@@ -154,19 +121,18 @@ class _ContactsPageState extends State<ContactsPage> {
                 'Contacts',
                 style: (TextStyle(fontWeight: FontWeight.bold, fontSize:20))
             ),
-            Expanded(
+            Expanded( // This container for full contacts list.
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: isSearching == true ? contactsFiltered.length : contacts.length,
+                itemCount: contacts.length,
                 itemBuilder: (context, index) {
-                  Contact contact = isSearching == true ? contactsFiltered[index] : contacts[index];
-
+                  Contact contact = contacts[index];
                   var baseColor = contactsColorMap[contact.displayName] as dynamic;
 
                   Color color1 = baseColor[800];
                   Color color2 = baseColor[400];
 
-                  var alreadySaved = emergencyContact.contains(contact);
+                  bool alreadySaved = emergencyContacts.get(contact.displayName) != null;
                   var avatarProfile = contact.avatar != null && contact.avatar.length > 0;
                   return ListTile(
                       title: Text(contact.displayName),
@@ -212,10 +178,17 @@ class _ContactsPageState extends State<ContactsPage> {
                       onTap: () {
                         setState(() {
                           if(alreadySaved) {
-                            emergencyContact.remove(contact);
+                            emergencyContacts.delete(
+                              contact.displayName);
                           }
                           else{
-                            emergencyContact.add(contact);
+                            emergencyContacts.put(
+                              contact.displayName,
+                              EmergencyContact(
+                                  name: contact.displayName,
+                                  number: contact.phones.elementAt(0).value
+                              )
+                            );
                           }
                         });
                       }
