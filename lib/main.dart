@@ -44,7 +44,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-
     return MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
@@ -68,7 +67,7 @@ class _MyAppState extends State<MyApp> {
           '/': (context) => MyHomePage(title: 'Home Page', settings: _settings),
           '/contacts': (context) => ContactsPage(title: 'Contacts Page'),
           '/log': (context) => LogPage(title: 'Log Page'),
-          '/settings': (context) => SettingsPage(title: 'Settings Page'),
+          '/settings': (context) => SettingsPage(title: 'Settings Page', settings: _settings),
           '/about': (context) => AboutPage(title: 'About Page'),
         }
     );

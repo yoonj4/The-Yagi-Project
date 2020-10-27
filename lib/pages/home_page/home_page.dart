@@ -1,11 +1,13 @@
+import 'dart:math' as math;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hive/hive.dart';
 import 'package:the_yagi_project/models/contacts.dart';
 import 'package:the_yagi_project/models/event.dart';
-
 import 'package:the_yagi_project/models/settings/settings.dart';
 import 'package:the_yagi_project/services/location.dart';
+import 'package:the_yagi_project/services/phone.dart';
 import 'package:the_yagi_project/services/sms.dart';
 import 'package:the_yagi_project/threat_meter/threat_level.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter.dart';
@@ -32,6 +34,7 @@ class MyHomePage extends StatefulWidget {
 
 
 class _MyHomePageState extends State<MyHomePage> {
+
   double _warningValue = 0.5;
   double _alertValue = 1;
 
@@ -56,12 +59,38 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Column(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-          children: [
-            RotatedBox(
-              quarterTurns: 3,
+      body: Stack(
+        children: [
+          Container(
+            padding: EdgeInsets.all(5.0),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: <Color>[
+                  Colors.black.withAlpha(0),
+                  Colors.black12,
+                  Colors.cyan
+                ],
+              ),
+            ),
+            child: Text(
+              "This would be the camera"
+            )
+          ),
+          Container(
+            // this container may be unnecessary
+            // width: 300,
+            // height: 200,
+            // color: Colors.cyan,
+            // transform: Matrix4.rotationZ(.1),
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..translate(50.0, 50)
+                ..scale(1.0, 1.0)
+                ..rotateZ(-math.pi / 2),
               child: ThreatMeter(
                 value: _value,
                 thumbShape: _thumbShape,
@@ -83,31 +112,42 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
               ),
             ),
-            Row(
-              children: [
-                Expanded( child: FlatButton(
-                    onPressed: (){ Navigator.pushNamed(context, '/contacts'); },
-                    color: Colors.amber,
-                    child: Text('Contacts')
-                )),
-                Expanded( child: FlatButton(
-                    onPressed: (){ Navigator.pushNamed(context, '/settings'); },
-                    color: Colors.amber,
-                    child: Text('Settings')
-                )),
-                Expanded( child: FlatButton(
-                    onPressed: (){ Navigator.pushNamed(context, '/log'); },
-                    color: Colors.amber,
-                    child: Text('Log')
-                )),
-                Expanded( child: FlatButton(
-                    onPressed: (){ Navigator.pushNamed(context, '/about'); },
-                    color: Colors.amber,
-                    child: Text('About')
-                )),
-              ],
-            )
-          ]
+          ),
+          Positioned(
+            bottom: 15,
+            left: 15,
+            child:
+              Text(
+              "THIS IS A BATMAN",
+              style: TextStyle(color: Colors.black87, fontSize: 20.0),
+              ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: Row(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Expanded( child: FlatButton(
+              onPressed: (){ Navigator.pushNamed(context, '/contacts'); },
+              color: Colors.amber,
+              child: Text('Contacts')
+          )),
+          Expanded( child: FlatButton(
+              onPressed: (){ Navigator.pushNamed(context, '/settings'); },
+              color: Colors.amber,
+              child: Text('Settings')
+          )),
+          Expanded( child: FlatButton(
+              onPressed: (){ Navigator.pushNamed(context, '/log'); },
+              color: Colors.amber,
+              child: Text('Log')
+          )),
+          Expanded( child: FlatButton(
+              onPressed: (){ Navigator.pushNamed(context, '/about'); },
+              color: Colors.amber,
+              child: Text('About')
+          )),
+        ],
       ),
     );
   }
@@ -124,8 +164,10 @@ class _MyHomePageState extends State<MyHomePage> {
     } else if (value >= _alertValue) {
       if (_currentThreatLevel != ThreatLevel.highThreat) {
         _sendMessage(widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value));
+        makePhoneCall('2063269710', false);
       } else if (_canSendMessage(now)) {
         _sendMessage(widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value));
+        makePhoneCall('2063269710', false);
       }
     } else if(_currentThreatLevel != ThreatLevel.noThreat) {
       _sendMessage(widget.settings.messageTemplate.getNoThreatMessage(), now, _convertToThreatLevel(value));
@@ -146,11 +188,10 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void _sendMessage(String message, DateTime now, ThreatLevel threatLevel) async {
     Iterable currentEmergencyContacts = emergencyContacts.values;
-    currentEmergencyContacts.forEach((emergencyContact) {
-      sendSMS(emergencyContact.number, message);
-    });
-
     String mapsUrl = await getMapsUrl();
+    currentEmergencyContacts.forEach((emergencyContact) {
+      sendSMS(emergencyContact.number, message + " " + mapsUrl);
+    });
     Fluttertoast.showToast(
       msg: "You sent an alert.",
     );
