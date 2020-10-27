@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'dart:math' as math;
 
 import 'package:the_yagi_project/models/settings/settings.dart';
 import 'package:the_yagi_project/services/location.dart';
@@ -30,7 +31,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  double _meterPadding = 150;  // Increasing this moves the threat meter more to the right.
 
   double _warningValue = 0.5;
   double _alertValue = 1;
@@ -54,33 +54,72 @@ class _MyHomePageState extends State<MyHomePage> {
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Container(
-        padding: EdgeInsets.only(left: _meterPadding),
-        child: RotatedBox(
-          quarterTurns: 3,
-          child: ThreatMeter(
-            value: _value,
-            thumbShape: _thumbShape,
-            cautionHeight: 0.33,
-            highThreatHeight: 0.66,
-            onChanged: (double value) {
-              setState(() {
-                _value = value;
-              });
-            },
-            onChangeStart: (double value) {
-              setState(() {
-                _thumbShape = DraggingThreatMeterThumbShape();
-              });
-            },
-            onChangeEnd: (double value) {
-              int now = DateTime.now().millisecondsSinceEpoch;
-              setState(() {
-                _handleThumbRelease(value, now);
-              });
-            },
+      body: Stack(
+        children: [
+          Container(
+            padding: EdgeInsets.all(5.0),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: <Color>[
+                  Colors.black.withAlpha(0),
+                  Colors.black12,
+                  Colors.cyan
+                ],
+              ),
+            ),
+            child: Text(
+              "This would be the camera"
+            )
           ),
-        ),
+          Container(
+            // this container may be unnecessary
+            // width: 300,
+            // height: 200,
+            // color: Colors.cyan,
+            // transform: Matrix4.rotationZ(.1),
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..translate(50.0, 50)
+                ..scale(1.0, 1.0)
+                ..rotateZ(-math.pi / 2),
+              child: ThreatMeter(
+                value: _value,
+                cautionHeight: 0.33,
+                highThreatHeight: 0.66,
+                thumbShape: _thumbShape,
+                onChanged: (double value) {
+                  setState(() {
+                    _value = value;
+                  });
+                },
+                onChangeStart: (double value) {
+                  setState(() {
+                    _thumbShape = DraggingThreatMeterThumbShape();
+                  });
+                },
+                onChangeEnd: (double value) {
+                  int now = DateTime.now().millisecondsSinceEpoch;
+                  setState(() {
+                    _handleThumbRelease(value, now);
+                  });
+                },
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 15,
+            left: 15,
+            child:
+              Text(
+              "THIS IS A BATMAN",
+              style: TextStyle(color: Colors.black87, fontSize: 20.0),
+              ),
+          ),
+        ],
       ),
       bottomNavigationBar: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
