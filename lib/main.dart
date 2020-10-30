@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:the_yagi_project/models/settings/message_template.dart';
+import 'package:the_yagi_project/models/settings/threat_meter_values.dart';
 import 'package:the_yagi_project/pages/settings/settings_page.dart';
 import 'package:the_yagi_project/pages/contacts/contacts_page.dart';
 import 'package:the_yagi_project/pages/log/log_page.dart';
 import 'package:the_yagi_project/pages/about/about_page.dart';
 import 'package:the_yagi_project/pages/home_page//home_page.dart';
 import 'package:the_yagi_project/models/settings/settings.dart';
+import 'package:the_yagi_project/settings_bloc.dart';
 import 'package:the_yagi_project/threat_meter/threat_level.dart';
 import 'models/contacts.dart';
 import 'models/event.dart';
@@ -21,55 +25,48 @@ void main() async {
 
   // Hive.box<Event>('events').clear();
 
-  runApp(MyApp());
+  MessageTemplate messageTemplate = new MessageTemplate();
+  await messageTemplate.populateData();
+  ThreatMeterValues threatMeterValues = new ThreatMeterValues();
+  await threatMeterValues.initThreatMeterValues();
+  Settings settings = new Settings(messageTemplate: messageTemplate, threatMeterValues: threatMeterValues);
+
+  runApp(MyApp(settings: settings));
 }
 
 class MyApp extends StatefulWidget {
+  MyApp({Key key, this.settings}) : super(key: key);
+
+  final Settings settings;
+
   @override
-  _MyAppState createState() => _MyAppState();
+  _MyAppState createState() => _MyAppState(settings: settings);
 }
 
 class _MyAppState extends State<MyApp> {
-  Settings _settings;
+  _MyAppState({this.settings});
 
-  @override
-  void initState() {
-    super.initState();
-
-    setState(() {
-      _settings = new Settings();
-      _settings.messageTemplate.populateData();
-    });
-  }
+  final Settings settings;
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return BlocProvider(
+      create: (context) => SettingsBloc(SettingsInitial(settings: settings)),
+      child: MaterialApp(
         title: 'Flutter Demo',
-        theme: ThemeData(
-          // This is the theme of your application.
-          //
-          // Try running your application with "flutter run". You'll see the
-          // application has a blue toolbar. Then, without quitting the app, try
-          // changing the primarySwatch below to Colors.green and then invoke
-          // "hot reload" (press "r" in the console where you ran "flutter run",
-          // or simply save your changes to "hot reload" in a Flutter IDE).
-          // Notice that the counter didn't reset back to zero; the application
-          // is not restarted.
-          primarySwatch: Colors.green,
-          // This makes the visual density adapt to the platform that you run
-          // the app on. For desktop platforms, the controls will be smaller and
-          // closer together (more dense) than on mobile platforms.
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
-        initialRoute: '/',
-        routes: {
-          '/': (context) => MyHomePage(title: 'Home Page', settings: _settings),
-          '/contacts': (context) => ContactsPage(title: 'Contacts Page'),
-          '/log': (context) => LogPage(title: 'Log Page'),
-          '/settings': (context) => SettingsPage(title: 'Settings Page', settings: _settings),
-          '/about': (context) => AboutPage(title: 'About Page'),
-        }
+          theme: ThemeData(
+            primarySwatch: Colors.green,
+            visualDensity: VisualDensity.adaptivePlatformDensity,
+          ),
+          initialRoute: '/',
+          routes: {
+            '/': (context) => MyHomePage(title: 'Home Page', settings: settings),
+            '/contacts': (context) => ContactsPage(title: 'Contacts Page'),
+            '/log': (context) => LogPage(title: 'Log Page'),
+            '/settings': (context) => SettingsPage(title: 'Settings Page', settings: settings),
+            '/about': (context) => AboutPage(title: 'About Page'),
+          },
+      )
     );
   }
 }

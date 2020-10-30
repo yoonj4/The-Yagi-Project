@@ -1,14 +1,18 @@
 import 'dart:math' as math;
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hive/hive.dart';
 import 'package:the_yagi_project/models/contacts.dart';
 import 'package:the_yagi_project/models/event.dart';
 import 'package:the_yagi_project/models/settings/settings.dart';
+import 'package:the_yagi_project/models/settings/threat_meter_values.dart';
 import 'package:the_yagi_project/services/location.dart';
 import 'package:the_yagi_project/services/phone.dart';
 import 'package:the_yagi_project/services/sms.dart';
+import 'package:the_yagi_project/settings_bloc.dart';
 import 'package:the_yagi_project/threat_meter/threat_level.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter_thumb_shape.dart';
@@ -29,16 +33,18 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState(settings: settings);
 }
 
 
 class _MyHomePageState extends State<MyHomePage> {
+  _MyHomePageState({this.settings});
 
-  double _warningValue = 0.5;
-  double _alertValue = 1;
+  final Settings settings;
 
   double _value = 0.0;
+  double _warningValue;
+  double _alertValue;
   ThreatLevel _currentThreatLevel = ThreatLevel.noThreat;
   DateTime _lastThreatLevelModifiedTime = DateTime.fromMillisecondsSinceEpoch(0);  // represented in milliseconds since epoch. -1 is the value to represent it's never been set.
   SliderComponentShape _thumbShape = ThreatMeterThumbShape();
@@ -46,6 +52,13 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (_warningValue == null) {
+      _warningValue = settings.threatMeterValues.getWarningValue();
+    }
+
+    if (_alertValue == null) {
+      _alertValue = settings.threatMeterValues.getAlertValue();
+    }
     emergencyContacts = Hive.box<EmergencyContact>('emergency');
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
@@ -91,25 +104,29 @@ class _MyHomePageState extends State<MyHomePage> {
                 ..translate(50.0, 50)
                 ..scale(1.0, 1.0)
                 ..rotateZ(-math.pi / 2),
-              child: ThreatMeter(
-                value: _value,
-                thumbShape: _thumbShape,
-                onChanged: (double value) {
-                  setState(() {
-                    _value = value;
-                  });
+              child: BlocListener<SettingsBloc, SettingsState>(
+                listenWhen: (previous, current) {
+                  Object previousSettings = previous.props.first;
+                  Object currentSettings = current.props.first;
+
+                  if (previousSettings is Settings && currentSettings is Settings) {
+                    return previousSettings.threatMeterValues.getWarningValue() != currentSettings.threatMeterValues.getWarningValue()
+                        || previousSettings.threatMeterValues.getAlertValue() != currentSettings.threatMeterValues.getAlertValue();
+                  }
+
+                  return false;
                 },
-                onChangeStart: (double value) {
-                  setState(() {
-                    _thumbShape = DraggingThreatMeterThumbShape();
-                  });
+                listener: (context, state) {
+                  print("listening");
+                  Object settings = state.props.first;
+                  if (settings is Settings) {
+                    setState(() {
+                      _warningValue = settings.threatMeterValues.getWarningValue();
+                      _alertValue = settings.threatMeterValues.getAlertValue();
+                    });
+                  }
                 },
-                onChangeEnd: (double value) {
-                  DateTime now = DateTime.now();
-                  setState(() {
-                    _handleThumbRelease(value, now);
-                  });
-                },
+                child: _buildThreatMeter(settings),
               ),
             ),
           ),
@@ -149,6 +166,37 @@ class _MyHomePageState extends State<MyHomePage> {
           )),
         ],
       ),
+    );
+  }
+
+  Widget _buildThreatMeter(Settings settings) {
+    if (settings != null) {
+      _warningValue = settings.threatMeterValues.getWarningValue();
+      _alertValue = settings.threatMeterValues.getAlertValue();
+    }
+    ThreatMeterValues threatMeterValues = new ThreatMeterValues.nonPermanent(_warningValue, _alertValue);
+    return ThreatMeter(
+      key: ValueKey(threatMeterValues),
+      value: _value,
+      cautionHeight: _warningValue,
+      highThreatHeight: _alertValue,
+      thumbShape: _thumbShape,
+      onChanged: (double value) {
+        setState(() {
+          _value = value;
+        });
+      },
+      onChangeStart: (double value) {
+        setState(() {
+          _thumbShape = DraggingThreatMeterThumbShape();
+        });
+      },
+      onChangeEnd: (double value) {
+        DateTime now = DateTime.now();
+        setState(() {
+          _handleThumbRelease(value, now);
+        });
+      },
     );
   }
 
@@ -213,7 +261,7 @@ class _MyHomePageState extends State<MyHomePage> {
       return ThreatLevel.caution;
     } else if (value >= _alertValue) {
       return ThreatLevel.highThreat;
-    } else if (value < _warningValue) {
+    } else {
       return ThreatLevel.noThreat;
     }
   }

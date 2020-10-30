@@ -39,7 +39,7 @@ class MessageTemplate {
     prefs.setString('highThreatMessage', msg);
   }
 
-  void populateData() async {
+  Future<void> populateData() async {
     final prefs = await SharedPreferences.getInstance();
 
     _noThreatMessage = prefs.getString('noThreatMessage');

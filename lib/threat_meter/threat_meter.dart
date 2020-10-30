@@ -42,6 +42,8 @@ class ThreatMeter extends StatefulWidget {
     this.mouseCursor,
     this.semanticFormatterCallback,
     this.thumbShape,
+    this.cautionHeight,
+    this.highThreatHeight,
   }) : _sliderType = _SliderType.material,
         super(key: key);
 
@@ -64,6 +66,8 @@ class ThreatMeter extends StatefulWidget {
     this.mouseCursor,
     this.semanticFormatterCallback,
     this.thumbShape,
+    this.cautionHeight,
+    this.highThreatHeight,
   }) : _sliderType = _SliderType.adaptive,
         super(key: key);
 
@@ -161,11 +165,15 @@ class ThreatMeter extends StatefulWidget {
 
   final SliderComponentShape thumbShape;
 
+  final double cautionHeight;
+
+  final double highThreatHeight;
+
 
   final _SliderType _sliderType ;
 
   @override
-  _ThreatMeterState createState() => _ThreatMeterState(thumbShape: thumbShape);
+  _ThreatMeterState createState() => _ThreatMeterState(thumbShape: thumbShape, cautionHeight: cautionHeight, highThreatHeight: highThreatHeight);
 
   @override
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
@@ -183,12 +191,16 @@ class ThreatMeter extends StatefulWidget {
     properties.add(FlagProperty('autofocus', value: autofocus, ifTrue: 'autofocus'));
     properties.add(ObjectFlagProperty<ValueChanged<double>>.has('semanticFormatterCallback', semanticFormatterCallback));
     properties.add(ObjectFlagProperty<SliderComponentShape>.has('thumbShape', thumbShape));
+    properties.add(DoubleProperty('cautionHeight', cautionHeight));
+    properties.add(DoubleProperty('highThreatHeight', highThreatHeight));
   }
 }
 
 class _ThreatMeterState extends State<ThreatMeter> with TickerProviderStateMixin {
   _ThreatMeterState({
     this.thumbShape,
+    this.cautionHeight,
+    this.highThreatHeight,
   }) : super();
   static const Duration enableAnimationDuration = Duration(milliseconds: 75);
   static const Duration valueIndicatorAnimationDuration = Duration(milliseconds: 100);
@@ -217,6 +229,10 @@ class _ThreatMeterState extends State<ThreatMeter> with TickerProviderStateMixin
   PaintValueIndicator paintValueIndicator;
 
   SliderComponentShape thumbShape;
+
+  double cautionHeight;
+
+  double highThreatHeight;
 
   @override
   void initState() {
@@ -470,6 +486,8 @@ class _ThreatMeterState extends State<ThreatMeter> with TickerProviderStateMixin
             semanticFormatterCallback: widget.semanticFormatterCallback,
             hasFocus: _focused,
             hovering: _hovering,
+            cautionHeight: cautionHeight,
+            highThreatHeight: highThreatHeight,
           ),
         ),
       ),
@@ -531,6 +549,8 @@ class _SliderRenderObjectWidget extends LeafRenderObjectWidget {
     this.semanticFormatterCallback,
     this.hasFocus,
     this.hovering,
+    this.cautionHeight,
+    this.highThreatHeight,
   }) : super(key: key);
 
   final double value;
@@ -546,6 +566,8 @@ class _SliderRenderObjectWidget extends LeafRenderObjectWidget {
   final _ThreatMeterState state;
   final bool hasFocus;
   final bool hovering;
+  final double cautionHeight;
+  final double highThreatHeight;
 
   @override
   _RenderSlider createRenderObject(BuildContext context) {
@@ -565,6 +587,8 @@ class _SliderRenderObjectWidget extends LeafRenderObjectWidget {
       platform: Theme.of(context).platform,
       hasFocus: hasFocus,
       hovering: hovering,
+      cautionHeight: cautionHeight,
+      highThreatHeight: highThreatHeight,
     );
   }
 
@@ -584,7 +608,9 @@ class _SliderRenderObjectWidget extends LeafRenderObjectWidget {
       ..semanticFormatterCallback = semanticFormatterCallback
       ..platform = Theme.of(context).platform
       ..hasFocus = hasFocus
-      ..hovering = hovering;
+      ..hovering = hovering
+      ..cautionHeight = cautionHeight
+      ..highThreatHeight = highThreatHeight;
     // Ticker provider cannot change since there's a 1:1 relationship between
     // the _SliderRenderObjectWidget object and the _SliderState object.
   }
@@ -607,6 +633,8 @@ class _RenderSlider extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     @required TextDirection textDirection,
     bool hasFocus,
     bool hovering,
+    double cautionHeight,
+    double highThreatHeight,
   }) : assert(value != null && value >= 0.0 && value <= 1.0),
         assert(state != null),
         assert(textDirection != null),
@@ -622,7 +650,9 @@ class _RenderSlider extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
         _state = state,
         _textDirection = textDirection,
         _hasFocus = hasFocus,
-        _hovering = hovering {
+        _hovering = hovering,
+        _cautionHeight = cautionHeight,
+        _highThreatHeight = highThreatHeight {
     _updateLabelPainter();
     final GestureArenaTeam team = GestureArenaTeam();
     _drag = HorizontalDragGestureRecognizer()
@@ -853,6 +883,26 @@ class _RenderSlider extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
       return;
     _hovering = value;
     _updateForFocusOrHover(_hovering);
+  }
+
+  double get cautionHeight => _cautionHeight;
+  double _cautionHeight;
+  set cautionHeight(double value) {
+    assert(value != null);
+    if (value == cautionHeight)
+      return;
+    _cautionHeight = value;
+    markNeedsPaint();
+  }
+
+  double get highThreatHeight => _highThreatHeight;
+  double _highThreatHeight;
+  set highThreatHeight(double value) {
+    assert(value != null);
+    if (value == highThreatHeight)
+      return;
+    _highThreatHeight = value;
+    markNeedsPaint();
   }
 
   void _updateForFocusOrHover(bool hasFocusOrIsHovering) {
@@ -1154,8 +1204,9 @@ class _RenderSlider extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     // If the tick marks would be too dense, don't bother painting them.
     if (adjustedTrackWidth / divisions >= 3.0 * tickMarkWidth) {
       final double dy = trackRect.center.dy - 11;
+      final tickHeights = [0.0, _cautionHeight, _highThreatHeight];
       for (int i = 0; i <= divisions; i++) {
-        final double value = i / divisions;
+        final double value = tickHeights[i];
         // The ticks are mapped to be within the track, so the tick mark width
         // must be subtracted from the track width.
         final double dx = trackRect.left + value * adjustedTrackWidth + padding / 2;
