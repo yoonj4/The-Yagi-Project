@@ -21,26 +21,23 @@ void main() async {
 
   // Hive.box<Event>('events').clear();
 
-  runApp(MyApp());
+  Settings settings = new Settings();
+  await settings.messageTemplate.populateData();
+  await settings.initThresholdValues();
+
+  runApp(MyApp(settings: settings));
 }
 
 class MyApp extends StatefulWidget {
+  MyApp({Key key, this.settings}) : super(key: key);
+
+  final Settings settings;
+
   @override
   _MyAppState createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> {
-  Settings _settings;
-
-  @override
-  void initState() {
-    super.initState();
-
-    setState(() {
-      _settings = new Settings();
-      _settings.messageTemplate.populateData();
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,10 +61,10 @@ class _MyAppState extends State<MyApp> {
         ),
         initialRoute: '/',
         routes: {
-          '/': (context) => MyHomePage(title: 'Home Page', settings: _settings),
+          '/': (context) => MyHomePage(title: 'Home Page', settings: widget.settings),
           '/contacts': (context) => ContactsPage(title: 'Contacts Page'),
           '/log': (context) => LogPage(title: 'Log Page'),
-          '/settings': (context) => SettingsPage(title: 'Settings Page', settings: _settings),
+          '/settings': (context) => SettingsPage(title: 'Settings Page', settings: widget.settings),
           '/about': (context) => AboutPage(title: 'About Page'),
         }
     );

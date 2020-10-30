@@ -8,10 +8,9 @@ class Settings {
 
   Settings() {
     messageTemplate = new MessageTemplate();
-    _initThresholdValues();
   }
 
-  void _initThresholdValues() async {
+  Future<void> initThresholdValues() async {
     final prefs = await SharedPreferences.getInstance();
 
     warningValue = prefs.getDouble("warningValue");
