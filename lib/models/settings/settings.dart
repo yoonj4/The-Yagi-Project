@@ -1,29 +1,26 @@
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:equatable/equatable.dart';
 import 'package:the_yagi_project/models/settings/message_template.dart';
+import 'package:the_yagi_project/models/settings/threat_meter_values.dart';
 
-class Settings {
-  MessageTemplate messageTemplate;
-  double warningValue;
-  double alertValue;
+class Settings extends Equatable {
+  Settings({this.messageTemplate, this.threatMeterValues});
 
-  Settings() {
-    messageTemplate = new MessageTemplate();
-  }
+  final MessageTemplate messageTemplate;
+  final ThreatMeterValues threatMeterValues;
 
-  Future<void> initThresholdValues() async {
-    final prefs = await SharedPreferences.getInstance();
+   @override
+  List<Object> get props => [
+    messageTemplate,
+    threatMeterValues,
+  ];
 
-    warningValue = prefs.getDouble("warningValue");
-    if (warningValue == null) {
-      warningValue = 0.33;
-      prefs.setDouble("warningValue", warningValue);
-    }
-
-    alertValue = prefs.getDouble("alertValue");
-    if (alertValue == null) {
-      alertValue = 0.66;
-      prefs.setDouble("alertValue", alertValue);
-    }
+   @override
+  bool operator ==(Object other) {
+     if (other is Settings) {
+       return threatMeterValues.getWarningValue() == other.threatMeterValues.getWarningValue()
+           && threatMeterValues.getAlertValue() == other.threatMeterValues.getAlertValue();
+     }
+     return false;
   }
 }
 
