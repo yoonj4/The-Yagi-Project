@@ -19,7 +19,8 @@ class _AboutPageState extends State<AboutPage> {
           title: Text(widget.title),
           centerTitle: true,
           elevation: 0,
-        )
+        ),
+
     );
   }
 }
