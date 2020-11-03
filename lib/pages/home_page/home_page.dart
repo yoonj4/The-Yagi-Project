@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'dart:math' as math;
+import 'package:camera/camera.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +20,7 @@ import 'package:the_yagi_project/threat_meter/threat_meter.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter_thumb_shape.dart';
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title, this.settings}) : super(key: key);
+  MyHomePage({Key key, this.title, this.settings, this.cameraController, this.videoDirectory}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -30,7 +32,9 @@ class MyHomePage extends StatefulWidget {
   // always marked "final".
 
   final Settings settings;
+  final CameraController cameraController;
   final String title;
+  final Directory videoDirectory;
 
   @override
   _MyHomePageState createState() => _MyHomePageState(settings: settings);
@@ -60,7 +64,8 @@ class _MyHomePageState extends State<MyHomePage> {
       _alertValue = settings.threatMeterValues.getAlertValue();
     }
     emergencyContacts = Hive.box<EmergencyContact>('emergency');
-    // This method is rerun every time setState is called, for instance as done
+
+  // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
     // The Flutter framework has been optimized to make rerunning build methods
@@ -88,9 +93,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
             ),
-            child: Text(
-              "This would be the camera"
-            )
+            child: AspectRatio(
+              aspectRatio: widget.cameraController.value.aspectRatio,
+              child: CameraPreview(widget.cameraController),
+            ),
           ),
           Container(
             // this container may be unnecessary
@@ -190,14 +196,25 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {
           _thumbShape = DraggingThreatMeterThumbShape();
         });
+        String videoPath = widget.videoDirectory.path
+            + DateTime.now().millisecondsSinceEpoch.toString();
+        print(videoPath);
+        widget.cameraController.startVideoRecording(videoPath);
       },
       onChangeEnd: (double value) {
+        widget.cameraController.stopVideoRecording();
         DateTime now = DateTime.now();
         setState(() {
           _handleThumbRelease(value, now);
         });
       },
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    widget.cameraController.dispose();
   }
 
   void _handleThumbRelease(double value, DateTime now) {

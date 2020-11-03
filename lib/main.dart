@@ -1,7 +1,11 @@
+import 'dart:io';
+
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:the_yagi_project/models/settings/message_template.dart';
 import 'package:the_yagi_project/models/settings/threat_meter_values.dart';
 import 'package:the_yagi_project/pages/settings/settings_page.dart';
@@ -31,22 +35,32 @@ void main() async {
   await threatMeterValues.initThreatMeterValues();
   Settings settings = new Settings(messageTemplate: messageTemplate, threatMeterValues: threatMeterValues);
 
-  runApp(MyApp(settings: settings));
+  List<CameraDescription> cameras = await availableCameras();
+  CameraController cameraController = CameraController(cameras[0], ResolutionPreset.max);
+  await cameraController.initialize();
+
+  final Directory videoDirectory = await getExternalStorageDirectory();
+
+  runApp(MyApp(settings: settings, cameraController: cameraController, videoDirectory: videoDirectory));
 }
 
 class MyApp extends StatefulWidget {
-  MyApp({Key key, this.settings}) : super(key: key);
+  MyApp({Key key, this.settings, this.cameraController, this.videoDirectory}) : super(key: key);
 
   final Settings settings;
+  final CameraController cameraController;
+  final Directory videoDirectory;
 
   @override
-  _MyAppState createState() => _MyAppState(settings: settings);
+  _MyAppState createState() => _MyAppState(settings: settings, cameraController: cameraController, videoDirectory: videoDirectory);
 }
 
 class _MyAppState extends State<MyApp> {
-  _MyAppState({this.settings});
+  _MyAppState({this.settings, this.cameraController, this.videoDirectory});
 
   final Settings settings;
+  final CameraController cameraController;
+  final Directory videoDirectory;
 
   @override
   Widget build(BuildContext context) {
@@ -60,7 +74,7 @@ class _MyAppState extends State<MyApp> {
           ),
           initialRoute: '/',
           routes: {
-            '/': (context) => MyHomePage(title: 'Home Page', settings: settings),
+            '/': (context) => MyHomePage(title: 'Home Page', settings: settings, cameraController: cameraController, videoDirectory: videoDirectory),
             '/contacts': (context) => ContactsPage(title: 'Contacts Page'),
             '/log': (context) => LogPage(title: 'Log Page'),
             '/settings': (context) => SettingsPage(title: 'Settings Page', settings: settings),
