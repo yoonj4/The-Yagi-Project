@@ -20,7 +20,8 @@ class _ContactsPageState extends State<ContactsPage> {
   Box<EmergencyContact> emergencyContacts;
   List<Contact> contacts = [];
   Map<String, Color> contactsColorMap = new Map();
-
+  final  ScrollController _scrollEmergency = ScrollController();
+  final  ScrollController _scrollContacts = ScrollController();
 
   @override
   void initState() {
@@ -78,41 +79,35 @@ class _ContactsPageState extends State<ContactsPage> {
         child: Column(
           children: <Widget>[
             Text(
-              'Emergency Contact',
+              'Emergency Contacts',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
-            Container( // This container for Emergency Contacts
-              height: (MediaQuery.of(context).size.height) / 2,
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: emergencyContacts.length,
-                itemBuilder: (context, index) {
-/*
- Will be used when avatars are added to emergency list
-                Contact contact = isSearching == true
-                    ? emergencyContact[index]
-                    : contacts[index];
-
-                var baseColor = contactsColorMap[contact
-                    .displayName] as dynamic;
-
-                Color color1 = baseColor[800];
-                Color color2 = baseColor[400];
-
- */
-                  if (emergencyContacts.length == 0) {
-                    return null;
-                  }
-                  else {
-                    return ListTile(
-                      title: Text(emergencyContacts.getAt(index).name),
-                      subtitle: Text(
-                          emergencyContacts.getAt(index).number
-                      ),
-                    );
-                  }
-                },
-              ),
+            Expanded( // Emergency Contacts only
+              child: Scrollbar(
+                isAlwaysShown: true,
+                controller: _scrollEmergency,
+                child: ListView.builder(
+                  controller: _scrollEmergency,
+                  shrinkWrap: true,
+                  itemCount: emergencyContacts.length,
+                  itemBuilder: (context, index) {
+                    if (emergencyContacts.length == 0) {
+                      return null;
+                    }
+                    else {
+                      return ListTile(
+                          title: Text(emergencyContacts.getAt(index).name),
+                          subtitle: Text(emergencyContacts.getAt(index).number),
+                          onTap: () {
+                            setState( () {
+                              emergencyContacts.delete(emergencyContacts.getAt(index).name);
+                            });
+                          }
+                      );
+                    }
+                  },
+                ),
+              )
             ),
             Divider(
                 color: Colors.grey
@@ -121,80 +116,88 @@ class _ContactsPageState extends State<ContactsPage> {
                 'Contacts',
                 style: (TextStyle(fontWeight: FontWeight.bold, fontSize:20))
             ),
-            Expanded( // This container for full contacts list.
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: contacts.length,
-                itemBuilder: (context, index) {
-                  Contact contact = contacts[index];
-                  var baseColor = contactsColorMap[contact.displayName] as dynamic;
+            Expanded( // Full Contacts List
+              child: Scrollbar(
+                isAlwaysShown: true,
+                controller: _scrollContacts,
+                child: ListView.builder(
+                  controller: _scrollContacts,
+                  shrinkWrap: true,
+                  itemCount: contacts.length,
+                  itemBuilder: (context, index) {
+                    Contact contact = contacts[index];
+                    var baseColor = contactsColorMap[contact.displayName] as dynamic;
 
-                  Color color1 = baseColor[800];
-                  Color color2 = baseColor[400];
+                    Color color1 = baseColor[800];
+                    Color color2 = baseColor[400];
 
-                  bool alreadySaved = emergencyContacts.get(contact.displayName) != null;
-                  var avatarProfile = contact.avatar != null && contact.avatar.length > 0;
-                  return ListTile(
-                      title: Text(contact.displayName),
-                      subtitle: Text(
-                          contact.phones.length > 0 ? contact.phones.elementAt(0).value : ''
-                      ),
-                      trailing: (
-                          Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                Icon(
-                                    alreadySaved ? Icons.favorite : Icons.favorite_border,
-                                    color: alreadySaved ? Colors.red : null
+                    bool alreadySaved = emergencyContacts.get(contact.displayName) != null;
+                    var avatarProfile = contact.avatar != null && contact.avatar.length > 0;
+                    return ListTile(
+                        title: Text(contact.displayName),
+                        subtitle: Text(
+                            contact.phones.length > 0 ? contact.phones.elementAt(0).value : ''
+                        ),
+                        leading: (
+                            avatarProfile?
+                            CircleAvatar(
+                              backgroundImage: MemoryImage(contact.avatar),
+                            ) :
+                            Container(
+                                decoration: BoxDecoration(
+                                    shape: BoxShape.rectangle,
+                                    gradient: LinearGradient(
+                                        colors: [
+                                          color1,
+                                          color2,
+                                        ],
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight
+                                    )
                                 ),
-                                avatarProfile?
-                                CircleAvatar(
-                                  backgroundImage: MemoryImage(contact.avatar),
-                                ) :
-                                Container(
-                                    decoration: BoxDecoration(
-                                        shape: BoxShape.rectangle,
-                                        gradient: LinearGradient(
-                                            colors: [
-                                              color1,
-                                              color2,
-                                            ],
-                                            begin: Alignment.centerLeft,
-                                            end: Alignment.centerRight
+                                child: CircleAvatar(
+                                    child: Text(
+                                        contact.initials(),
+                                        style: TextStyle(
+                                            color: Colors.white
                                         )
                                     ),
-                                    child: CircleAvatar(
-                                        child: Text(
-                                            contact.initials(),
-                                            style: TextStyle(
-                                                color: Colors.white
-                                            )
-                                        ),
-                                        backgroundColor: Colors.transparent
-                                    )
+                                    backgroundColor: Colors.transparent
                                 )
-                              ])
-                      ),
-                      onTap: () {
-                        setState(() {
-                          if(alreadySaved) {
-                            emergencyContacts.delete(
-                              contact.displayName);
-                          }
-                          else{
-                            emergencyContacts.put(
-                              contact.displayName,
-                              EmergencyContact(
-                                  name: contact.displayName,
-                                  number: contact.phones.elementAt(0).value
-                              )
-                            );
-                          }
-                        });
-                      }
-                  );
-                },
-              ),
+                            )
+                        ),
+                        trailing: (
+                            Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  Icon(
+                                      alreadySaved ? Icons.favorite : Icons.favorite_border,
+                                      color: alreadySaved ? Colors.red : null
+                                  ),
+                                ])
+                        ),
+                        onTap: () {
+                          setState(() {
+                            if(alreadySaved) {
+                              emergencyContacts.delete(
+                                  contact.displayName);
+                            }
+                            else{
+                              emergencyContacts.put(
+                                  contact.displayName,
+                                  EmergencyContact(
+                                      name: contact.displayName,
+                                      number: contact.phones.elementAt(0).value
+                                  )
+                              );
+                            }
+                          });
+                        }
+                    );
+                  },
+                ),
+              )
+
             )
           ],
         ),
