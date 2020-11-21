@@ -199,7 +199,8 @@ class _MyHomePageState extends State<MyHomePage> {
           _thumbShape = DraggingThreatMeterThumbShape();
         });
         _videoPath = widget.videoDirectory.path
-            + DateTime.now().millisecondsSinceEpoch.toString();
+            + DateTime.now().millisecondsSinceEpoch.toString()
+            + '.mp4';
         print(_videoPath);
         widget.cameraController.startVideoRecording(_videoPath);
       },
