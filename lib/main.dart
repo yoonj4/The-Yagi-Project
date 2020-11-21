@@ -36,7 +36,7 @@ void main() async {
   Settings settings = new Settings(messageTemplate: messageTemplate, threatMeterValues: threatMeterValues);
 
   List<CameraDescription> cameras = await availableCameras();
-  CameraController cameraController = CameraController(cameras[0], ResolutionPreset.max);
+  CameraController cameraController = CameraController(cameras[0], ResolutionPreset.low);
   await cameraController.initialize();
 
   final Directory videoDirectory = await getExternalStorageDirectory();
