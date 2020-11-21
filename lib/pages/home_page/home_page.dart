@@ -259,7 +259,9 @@ class _MyHomePageState extends State<MyHomePage> {
     currentEmergencyContacts.forEach((emergencyContact) {
       sendSMS(emergencyContact.number, message + " " + mapsUrl);
     });
-    Mms().sendVideo(_videoPath, List<String>.from(currentEmergencyContacts.map((e) => e.number)));
+    List<String> recipientNumbers = List<String>.from(currentEmergencyContacts.map((e) => e.number));
+    print(recipientNumbers);
+    Mms().sendVideo(_videoPath, recipientNumbers);
     Fluttertoast.showToast(
       msg: "You sent an alert.",
     );
