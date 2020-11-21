@@ -198,7 +198,7 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {
           _thumbShape = DraggingThreatMeterThumbShape();
         });
-        _videoPath = widget.videoDirectory.path
+        _videoPath = widget.videoDirectory.path + '/'
             + DateTime.now().millisecondsSinceEpoch.toString()
             + '.mp4';
         print(_videoPath);

@@ -39,7 +39,7 @@ void main() async {
   CameraController cameraController = CameraController(cameras[0], ResolutionPreset.low);
   await cameraController.initialize();
 
-  final Directory videoDirectory = await getExternalStorageDirectory();
+  final Directory videoDirectory = await getApplicationDocumentsDirectory();
 
   runApp(MyApp(settings: settings, cameraController: cameraController, videoDirectory: videoDirectory));
 }
