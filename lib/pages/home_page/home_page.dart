@@ -260,7 +260,7 @@ class _MyHomePageState extends State<MyHomePage> {
     currentEmergencyContacts.forEach((emergencyContact) {
       sendSMS(emergencyContact.number, message + " " + mapsUrl);
     });
-    List<String> recipientNumbers = List<String>.from(currentEmergencyContacts.map((e) => e.number));
+    List<String> recipientNumbers = List<String>.from(currentEmergencyContacts.map((e) => e.number).map((e) => e.replaceAll(RegExp('[^0-9]'), '')));
     print(recipientNumbers);
     Mms().sendVideo(_videoPath, recipientNumbers);
     Fluttertoast.showToast(
