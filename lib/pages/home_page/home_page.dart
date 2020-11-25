@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hive/hive.dart';
+import 'package:mms/mms.dart';
 import 'package:the_yagi_project/models/contacts.dart';
 import 'package:the_yagi_project/models/event.dart';
 import 'package:the_yagi_project/models/settings/settings.dart';
@@ -52,6 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
   DateTime _lastThreatLevelModifiedTime = DateTime.fromMillisecondsSinceEpoch(0);  // represented in milliseconds since epoch. -1 is the value to represent it's never been set.
   SliderComponentShape _thumbShape = ThreatMeterThumbShape();
   Box<EmergencyContact> emergencyContacts;
+  String _videoPath;
   List<bool> _selections = [false, true]; // this data might be saved locally
   FToast fToast;
 
@@ -207,10 +209,11 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {
           _thumbShape = DraggingThreatMeterThumbShape();
         });
-        String videoPath = widget.videoDirectory.path
-            + DateTime.now().millisecondsSinceEpoch.toString();
-        print(videoPath);
-        widget.cameraController.startVideoRecording(videoPath);
+        _videoPath = widget.videoDirectory.path + '/'
+            + DateTime.now().millisecondsSinceEpoch.toString()
+            + '.mp4';
+        print(_videoPath);
+        widget.cameraController.startVideoRecording(_videoPath);
       },
       onChangeEnd: (double value) {
         widget.cameraController.stopVideoRecording();
@@ -268,6 +271,10 @@ class _MyHomePageState extends State<MyHomePage> {
     currentEmergencyContacts.forEach((emergencyContact) {
       sendSMS(emergencyContact.number, message + " " + mapsUrl);
     });
+
+    List<String> recipientNumbers = List<String>.from(currentEmergencyContacts.map((e) => e.number).map((e) => e.replaceAll(RegExp('[^0-9]'), '')));
+    print(recipientNumbers);
+    Mms().sendVideo(_videoPath, recipientNumbers);
 
     _showToast(context);
 
