@@ -21,7 +21,7 @@ import 'package:the_yagi_project/threat_meter/threat_meter.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter_thumb_shape.dart';
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title, this.settings, this.cameraController, this.videoDirectory}) : super(key: key);
+  MyHomePage({Key key, this.settings, this.cameraController, this.videoDirectory}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -34,7 +34,6 @@ class MyHomePage extends StatefulWidget {
 
   final Settings settings;
   final CameraController cameraController;
-  final String title;
   final Directory videoDirectory;
 
   @override
@@ -55,6 +54,15 @@ class _MyHomePageState extends State<MyHomePage> {
   SliderComponentShape _thumbShape = ThreatMeterThumbShape();
   Box<EmergencyContact> emergencyContacts;
   String _videoPath;
+  List<bool> _selections = [false, true]; // this data might be saved locally
+  FToast fToast;
+
+  @override
+  void initState() {
+    super.initState();
+    fToast = FToast();
+    fToast.init(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,15 +82,12 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Stack(
+      body: Container(
+        height: MediaQuery.of(context).size.height,
+        width: MediaQuery.of(context).size.width,
+        child: Stack(
         children: [
           Container(
-            padding: EdgeInsets.all(5.0),
             alignment: Alignment.center,
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -95,10 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
             ),
-            child: AspectRatio(
-              aspectRatio: widget.cameraController.value.aspectRatio,
-              child: CameraPreview(widget.cameraController),
-            ),
+            child: CameraPreview(widget.cameraController),
           ),
           Container(
             // this container may be unnecessary
@@ -134,50 +136,59 @@ class _MyHomePageState extends State<MyHomePage> {
                     });
                   }
                 },
-                child: _buildThreatMeter(settings),
+                child: _buildThreatMeter(settings, context),
               ),
             ),
           ),
           Positioned(
-            bottom: 15,
-            left: 15,
+            bottom: 50,
+            left: 50,
             child:
-              Text(
-              "THIS IS A BATMAN",
-              style: TextStyle(color: Colors.black87, fontSize: 20.0),
-              ),
+            ToggleButtons(
+              children: <Widget>[
+                Icon(Icons.camera_alt_outlined),
+                Icon(Icons.cake_outlined),
+              ],
+              onPressed: (int index) {
+                setState(() {
+                  for (int buttonIndex = 0; buttonIndex < _selections.length; buttonIndex++) {
+                    _selections[buttonIndex] = (buttonIndex == index) ? true : false;
+                  }
+                });
+              },
+              isSelected: _selections,
+            ),
           ),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded( child: OutlinedButton(
+                    onPressed: (){ Navigator.pushNamed(context, '/contacts'); },
+                    child: Text('Contacts')
+                )),
+                Expanded( child: OutlinedButton(
+                    onPressed: (){ Navigator.pushNamed(context, '/settings'); },
+                    child: Text('Settings',)
+                )),
+                Expanded( child: OutlinedButton(
+                    onPressed: (){ Navigator.pushNamed(context, '/log'); },
+                    child: Text('Log')
+                )),
+                Expanded( child: OutlinedButton(
+                    onPressed: (){ Navigator.pushNamed(context, '/about'); },
+                    child: Text('About')
+                )),
+              ],
+            ),)
         ],
-      ),
-      bottomNavigationBar: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded( child: FlatButton(
-              onPressed: (){ Navigator.pushNamed(context, '/contacts'); },
-              color: Colors.amber,
-              child: Text('Contacts')
-          )),
-          Expanded( child: FlatButton(
-              onPressed: (){ Navigator.pushNamed(context, '/settings'); },
-              color: Colors.amber,
-              child: Text('Settings')
-          )),
-          Expanded( child: FlatButton(
-              onPressed: (){ Navigator.pushNamed(context, '/log'); },
-              color: Colors.amber,
-              child: Text('Log')
-          )),
-          Expanded( child: FlatButton(
-              onPressed: (){ Navigator.pushNamed(context, '/about'); },
-              color: Colors.amber,
-              child: Text('About')
-          )),
-        ],
+      )
       ),
     );
   }
 
-  Widget _buildThreatMeter(Settings settings) {
+  Widget _buildThreatMeter(Settings settings, BuildContext context) {
     if (settings != null) {
       _warningValue = settings.threatMeterValues.getWarningValue();
       _alertValue = settings.threatMeterValues.getAlertValue();
@@ -208,7 +219,7 @@ class _MyHomePageState extends State<MyHomePage> {
         widget.cameraController.stopVideoRecording();
         DateTime now = DateTime.now();
         setState(() {
-          _handleThumbRelease(value, now);
+          _handleThumbRelease(value, now, context);
         });
       },
     );
@@ -220,25 +231,25 @@ class _MyHomePageState extends State<MyHomePage> {
     widget.cameraController.dispose();
   }
 
-  void _handleThumbRelease(double value, DateTime now) {
+  void _handleThumbRelease(double value, DateTime now, BuildContext context) {
     if (value >= _warningValue && value < _alertValue) {
       if (_currentThreatLevel != ThreatLevel.caution) {
         // first time
-        _sendMessage(widget.settings.messageTemplate.getCautionMessage(), now, _convertToThreatLevel(value));
+        _sendMessage(widget.settings.messageTemplate.getCautionMessage(), now, _convertToThreatLevel(value), context);
       } else if (_canSendMessage(now)) {
         // if we did this action repeatedly
-        _sendMessage(widget.settings.messageTemplate.getCautionMessage(), now, _convertToThreatLevel(value));
+        _sendMessage(widget.settings.messageTemplate.getCautionMessage(), now, _convertToThreatLevel(value), context);
       }
     } else if (value >= _alertValue) {
       if (_currentThreatLevel != ThreatLevel.highThreat) {
-        _sendMessage(widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value));
+        _sendMessage(widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value), context);
         makePhoneCall('2063269710', false);
       } else if (_canSendMessage(now)) {
-        _sendMessage(widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value));
+        _sendMessage(widget.settings.messageTemplate.getHighThreatMessage(), now, _convertToThreatLevel(value), context);
         makePhoneCall('2063269710', false);
       }
     } else if(_currentThreatLevel != ThreatLevel.noThreat) {
-      _sendMessage(widget.settings.messageTemplate.getNoThreatMessage(), now, _convertToThreatLevel(value));
+      _sendMessage(widget.settings.messageTemplate.getNoThreatMessage(), now, _convertToThreatLevel(value), context);
     }
 
     _thumbShape = ThreatMeterThumbShape();
@@ -254,18 +265,18 @@ class _MyHomePageState extends State<MyHomePage> {
     return now.isAfter(_lastThreatLevelModifiedTime.add(const Duration(seconds: 10)));
   }
 
-  void _sendMessage(String message, DateTime now, ThreatLevel threatLevel) async {
+  void _sendMessage(String message, DateTime now, ThreatLevel threatLevel, BuildContext context) async {
     Iterable currentEmergencyContacts = emergencyContacts.values;
     String mapsUrl = await getMapsUrl();
     currentEmergencyContacts.forEach((emergencyContact) {
       sendSMS(emergencyContact.number, message + " " + mapsUrl);
     });
+
     List<String> recipientNumbers = List<String>.from(currentEmergencyContacts.map((e) => e.number).map((e) => e.replaceAll(RegExp('[^0-9]'), '')));
     print(recipientNumbers);
     Mms().sendVideo(_videoPath, recipientNumbers);
-    Fluttertoast.showToast(
-      msg: "You sent an alert.",
-    );
+
+    _showToast(context);
 
     var events = Hive.box<Event>('events');
     await events.add(
@@ -288,5 +299,37 @@ class _MyHomePageState extends State<MyHomePage> {
       return ThreatLevel.noThreat;
     }
   }
-}
 
+  void _showToast(BuildContext context) {
+    Widget toast = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(25.0),
+        color: Colors.greenAccent,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check),
+          SizedBox(
+            width: 12.0,
+          ),
+          Text("This is a Custom Toast"),
+        ],
+      ),
+    );
+
+    // Custom Toast Position
+    fToast.showToast(
+        child: toast,
+        toastDuration: Duration(seconds: 2),
+        positionedToastBuilder: (context, child) {
+          return Positioned(
+            child: child,
+            top: 100.0,
+            left: 100.0,
+          );
+        });
+  }
+
+}

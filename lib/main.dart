@@ -71,10 +71,26 @@ class _MyAppState extends State<MyApp> {
           theme: ThemeData(
             primarySwatch: Colors.green,
             visualDensity: VisualDensity.adaptivePlatformDensity,
+            buttonTheme: ButtonThemeData(
+              splashColor: Colors.green,
+              buttonColor: Colors.deepPurpleAccent
+            ),
+            outlinedButtonTheme: OutlinedButtonThemeData(
+              style: OutlinedButton.styleFrom(
+                primary: Colors.red,
+                backgroundColor: Colors.green,
+                side: BorderSide(color: Colors.black87),
+                shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(5))),
+              )
+            ),
+            sliderTheme: SliderThemeData(
+              overlayColor: Colors.red,
+              thumbColor: Colors.red,
+            )
           ),
           initialRoute: '/',
           routes: {
-            '/': (context) => MyHomePage(title: 'Home Page', settings: settings, cameraController: cameraController, videoDirectory: videoDirectory),
+            '/': (context) => MyHomePage(settings: settings, cameraController: cameraController, videoDirectory: videoDirectory),
             '/contacts': (context) => ContactsPage(title: 'Contacts Page'),
             '/log': (context) => LogPage(title: 'Log Page'),
             '/settings': (context) => SettingsPage(title: 'Settings Page', settings: settings),
