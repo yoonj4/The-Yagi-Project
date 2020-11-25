@@ -89,7 +89,7 @@ class ThreatMeterThumbShape extends SliderComponentShape {
     final double evaluatedElevation = elevationTween.evaluate(activationAnimation);
     final Path path = Path()
       ..addArc(Rect.fromCenter(center: center, width: 2 * radius, height: 2 * radius), 0, math.pi * 2);
-    canvas.drawShadow(path, Colors.black, evaluatedElevation, true);
+    canvas.drawShadow(path, Colors.green, evaluatedElevation, true);
 
     canvas.drawCircle(
       center,
@@ -187,7 +187,7 @@ class DraggingThreatMeterThumbShape extends SliderComponentShape {
     final double evaluatedElevation = elevationTween.evaluate(activationAnimation);
     final Path path = Path()
       ..addArc(Rect.fromCenter(center: center, width: 2 * radius, height: 2 * radius), 0, math.pi * 2);
-    canvas.drawShadow(path, Colors.black, evaluatedElevation, true);
+    canvas.drawShadow(path, Colors.green, evaluatedElevation, true);
 
     canvas.drawCircle(
       center,

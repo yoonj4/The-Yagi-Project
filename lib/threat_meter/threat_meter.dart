@@ -111,13 +111,13 @@ class ThreatMeter extends StatefulWidget {
   ///
   /// The "active" side of the slider is the side between the thumb and the
   /// minimum value.
-  final Color activeColor = Colors.white;
+  final Color activeColor = Colors.red;
 
   /// The color for the inactive portion of the slider track.
   ///
   /// The "inactive" side of the slider is the side between the thumb and the
   /// maximum value.
-  final Color inactiveColor = Colors.white;
+  final Color inactiveColor = Colors.blue;
 
   /// The callback used to create a semantic value from a slider value.
   ///
@@ -423,8 +423,8 @@ class _ThreatMeterState extends State<ThreatMeter> with TickerProviderStateMixin
 
     sliderTheme = sliderTheme.copyWith(
       trackHeight: sliderTheme.trackHeight ?? _defaultTrackHeight,
-      activeTrackColor: widget.activeColor ?? sliderTheme.activeTrackColor ?? theme.colorScheme.primary,
-      inactiveTrackColor: widget.inactiveColor ?? sliderTheme.inactiveTrackColor ?? theme.colorScheme.primary.withOpacity(0.24),
+      activeTrackColor: Colors.transparent, // widget.activeColor ?? sliderTheme.activeTrackColor ?? theme.colorScheme.primary,
+      inactiveTrackColor: Colors.green, // widget.inactiveColor ?? sliderTheme.inactiveTrackColor ?? theme.colorScheme.primary.withOpacity(0.24),
       disabledActiveTrackColor: sliderTheme.disabledActiveTrackColor ?? theme.colorScheme.onSurface.withOpacity(0.32),
       disabledInactiveTrackColor: sliderTheme.disabledInactiveTrackColor ?? theme.colorScheme.onSurface.withOpacity(0.12),
       activeTickMarkColor: widget.inactiveColor ?? sliderTheme.activeTickMarkColor ?? theme.colorScheme.onPrimary.withOpacity(0.54),

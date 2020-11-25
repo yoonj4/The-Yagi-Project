@@ -63,7 +63,7 @@ class ThreatMeterTrackShape extends SliderTrackShape with BaseSliderTrackShape {
 
     final Radius trackRadius = Radius.circular(trackRect.height * _radiusMultiplier);
     final Radius trackOutlineRadius = Radius.circular(trackRect.height * _radiusMultiplier + 1);
-    final Paint outlinePaint = Paint()..color = Colors.black;
+    final Paint outlinePaint = Paint()..color = Colors.transparent;
 
     context.canvas.drawRRect(
       RRect.fromLTRBAndCorners(

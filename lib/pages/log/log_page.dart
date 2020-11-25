@@ -31,7 +31,7 @@ class _LogPageState extends State<LogPage> {
           child: Column(
             children: <Widget>[
             Text(
-              'Log',
+              widget.title,
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
             ),
             Expanded(
@@ -43,7 +43,7 @@ class _LogPageState extends State<LogPage> {
                     return null;
                   }
                   else {
-                    var event = eventsBox.get(index);
+                    var event = eventsBox.get(eventsBox.length - index - 1);
                     Color color;
                     if (event.threatLevel == ThreatLevel.highThreat) {
                       color = Colors.red;
