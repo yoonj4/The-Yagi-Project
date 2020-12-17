@@ -18,17 +18,23 @@ class EmergencyContactAdapter extends TypeAdapter<EmergencyContact> {
     };
     return EmergencyContact()
       ..name = fields[0] as String
-      ..number = fields[1] as String;
+      ..number = fields[1] as String
+      ..avatar = fields[2] as Uint8List
+      ..initials = fields[3] as String;
   }
 
   @override
   void write(BinaryWriter writer, EmergencyContact obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(4)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
-      ..write(obj.number);
+      ..write(obj.number)
+      ..writeByte(2)
+      ..write(obj.avatar)
+      ..writeByte(3)
+      ..write(obj.initials);
   }
 
   @override

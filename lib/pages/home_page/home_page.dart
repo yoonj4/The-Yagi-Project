@@ -55,6 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Box<EmergencyContact> emergencyContacts;
   String _videoPath;
   List<bool> _selections = [false, true]; // this data might be saved locally
+  bool _cameraOn = true;
   FToast fToast;
 
   @override
@@ -153,6 +154,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 setState(() {
                   for (int buttonIndex = 0; buttonIndex < _selections.length; buttonIndex++) {
                     _selections[buttonIndex] = (buttonIndex == index) ? true : false;
+                    _cameraOn = !_cameraOn;
+                    widget.cameraController.toggleCamera();
                   }
                 });
               },
@@ -213,9 +216,12 @@ class _MyHomePageState extends State<MyHomePage> {
             + DateTime.now().millisecondsSinceEpoch.toString()
             + '.mp4';
         print(_videoPath);
+
+
         widget.cameraController.startVideoRecording(_videoPath);
       },
       onChangeEnd: (double value) {
+
         widget.cameraController.stopVideoRecording();
         DateTime now = DateTime.now();
         setState(() {
