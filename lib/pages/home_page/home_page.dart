@@ -18,6 +18,7 @@ import 'package:the_yagi_project/services/sms.dart';
 import 'package:the_yagi_project/settings_bloc.dart';
 import 'package:the_yagi_project/threat_meter/threat_level.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter.dart';
+import 'package:the_yagi_project/threat_meter/threat_meter_new.dart';
 import 'package:the_yagi_project/threat_meter/threat_meter_thumb_shape.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -112,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Transform(
               alignment: Alignment.center,
               transform: Matrix4.identity()
-                ..translate(50.0, 50)
+                ..translate(100.0, 250)
                 ..scale(1.0, 1.0)
                 ..rotateZ(-math.pi / 2),
               child: BlocListener<SettingsBloc, SettingsState>(
@@ -137,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     });
                   }
                 },
-                child: _buildThreatMeter(settings, context),
+                child: _buildThreatMeterNew(settings, context),
               ),
             ),
           ),
@@ -228,6 +229,27 @@ class _MyHomePageState extends State<MyHomePage> {
           _handleThumbRelease(value, now, context);
         });
       },
+    );
+  }
+
+  Widget _buildThreatMeterNew(Settings settings, BuildContext context) {
+    if (settings != null) {
+      _warningValue = settings.threatMeterValues.getWarningValue();
+      _alertValue = settings.threatMeterValues.getAlertValue();
+    }
+    ThreatMeterValues threatMeterValues = new ThreatMeterValues.nonPermanent(_warningValue, _alertValue);
+
+    var videoPath = widget.videoDirectory.path + '/'
+        + DateTime.now().millisecondsSinceEpoch.toString()
+        + '.mp4';
+
+    return SliderWidget(
+      key: ValueKey(threatMeterValues),
+      cautionHeight: _warningValue,
+      highThreatHeight: _alertValue,
+      cameraController: widget.cameraController,
+      settings: widget.settings,
+      videoPath: videoPath,
     );
   }
 
@@ -327,15 +349,15 @@ class _MyHomePageState extends State<MyHomePage> {
 
     // Custom Toast Position
     fToast.showToast(
-        child: toast,
-        toastDuration: Duration(seconds: 2),
-        positionedToastBuilder: (context, child) {
-          return Positioned(
-            child: child,
-            top: 100.0,
-            left: 100.0,
-          );
-        });
+      child: toast,
+      toastDuration: Duration(seconds: 2),
+      positionedToastBuilder: (context, child) {
+        return Positioned(
+          child: child,
+          top: 100.0,
+          left: 100.0,
+        );
+      }
+    );
   }
-
 }
