@@ -48,15 +48,11 @@ class _MyHomePageState extends State<MyHomePage> {
 
   final Settings settings;
 
-  double _value = 0.0;
   double _warningValue;
   double _alertValue;
-  ThreatLevel _currentThreatLevel = ThreatLevel.noThreat;
-  DateTime _lastThreatLevelModifiedTime = DateTime.fromMillisecondsSinceEpoch(
-      0); // represented in milliseconds since epoch. -1 is the value to represent it's never been set.
-  SliderComponentShape _thumbShape = ThreatMeterThumbShape();
+
   Box<EmergencyContact> emergencyContacts;
-  String _videoPath;
+
   List<bool> _selections = [false, true]; // this data might be saved locally
   bool _cameraOn = true;
   FToast fToast;
@@ -202,46 +198,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  Widget _buildThreatMeter(Settings settings, BuildContext context) {
-    if (settings != null) {
-      _warningValue = settings.threatMeterValues.getWarningValue();
-      _alertValue = settings.threatMeterValues.getAlertValue();
-    }
-    ThreatMeterValues threatMeterValues =
-        new ThreatMeterValues.nonPermanent(_warningValue, _alertValue);
-    return ThreatMeter(
-      key: ValueKey(threatMeterValues),
-      value: _value,
-      cautionHeight: _warningValue,
-      highThreatHeight: _alertValue,
-      thumbShape: _thumbShape,
-      onChanged: (double value) {
-        setState(() {
-          _value = value;
-        });
-      },
-      onChangeStart: (double value) {
-        setState(() {
-          _thumbShape = DraggingThreatMeterThumbShape();
-        });
-        _videoPath = widget.videoDirectory.path +
-            '/' +
-            DateTime.now().millisecondsSinceEpoch.toString() +
-            '.mp4';
-        print(_videoPath);
-
-        widget.cameraController.startVideoRecording(_videoPath);
-      },
-      onChangeEnd: (double value) {
-        widget.cameraController.stopVideoRecording();
-        DateTime now = DateTime.now();
-        setState(() {
-          _handleThumbRelease(value, now, context);
-        });
-      },
-    );
-  }
-
   Widget _buildThreatMeterNew(Settings settings) {
     if (settings != null) {
       _warningValue = settings.threatMeterValues.getWarningValue();
@@ -269,113 +225,5 @@ class _MyHomePageState extends State<MyHomePage> {
   void dispose() {
     super.dispose();
     widget.cameraController.dispose();
-  }
-
-  void _handleThumbRelease(double value, DateTime now, BuildContext context) {
-    if (value >= _warningValue && value < _alertValue) {
-      if (_currentThreatLevel != ThreatLevel.caution) {
-        // first time
-        _sendMessage(widget.settings.messageTemplate.getCautionMessage(), now,
-            _convertToThreatLevel(value), context);
-      } else if (_canSendMessage(now)) {
-        // if we did this action repeatedly
-        _sendMessage(widget.settings.messageTemplate.getCautionMessage(), now,
-            _convertToThreatLevel(value), context);
-      }
-    } else if (value >= _alertValue) {
-      if (_currentThreatLevel != ThreatLevel.highThreat) {
-        _sendMessage(widget.settings.messageTemplate.getHighThreatMessage(),
-            now, _convertToThreatLevel(value), context);
-        makePhoneCall('2063269710', false);
-      } else if (_canSendMessage(now)) {
-        _sendMessage(widget.settings.messageTemplate.getHighThreatMessage(),
-            now, _convertToThreatLevel(value), context);
-        makePhoneCall('2063269710', false);
-      }
-    } else if (_currentThreatLevel != ThreatLevel.noThreat) {
-      _sendMessage(widget.settings.messageTemplate.getNoThreatMessage(), now,
-          _convertToThreatLevel(value), context);
-    }
-
-    _thumbShape = ThreatMeterThumbShape();
-    _currentThreatLevel = _convertToThreatLevel(value);
-
-    if (_canSendMessage(now)) {
-      _lastThreatLevelModifiedTime = now;
-    }
-  }
-
-  bool _canSendMessage(DateTime now) {
-    // We can send a message if it's been 10 seconds since the previous message
-    return now
-        .isAfter(_lastThreatLevelModifiedTime.add(const Duration(seconds: 10)));
-  }
-
-  void _sendMessage(String message, DateTime now, ThreatLevel threatLevel,
-      BuildContext context) async {
-    Iterable currentEmergencyContacts = emergencyContacts.values;
-    String mapsUrl = await getMapsUrl();
-    currentEmergencyContacts.forEach((emergencyContact) {
-      sendSMS(emergencyContact.number, message + " " + mapsUrl);
-    });
-
-    List<String> recipientNumbers = List<String>.from(currentEmergencyContacts
-        .map((e) => e.number)
-        .map((e) => e.replaceAll(RegExp('[^0-9]'), '')));
-    print(recipientNumbers);
-    Mms().sendVideo(_videoPath, recipientNumbers);
-
-    _showToast(context);
-
-    var events = Hive.box<Event>('events');
-    await events.add(Event(
-      eventDateTime: now,
-      location: mapsUrl,
-      threatLevel: threatLevel,
-      message: message,
-      emergencyContacts: currentEmergencyContacts.toList(),
-    ));
-  }
-
-  ThreatLevel _convertToThreatLevel(double value) {
-    if (value >= _warningValue && value < _alertValue) {
-      return ThreatLevel.caution;
-    } else if (value >= _alertValue) {
-      return ThreatLevel.highThreat;
-    } else {
-      return ThreatLevel.noThreat;
-    }
-  }
-
-  void _showToast(BuildContext context) {
-    Widget toast = Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25.0),
-        color: Colors.greenAccent,
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.check),
-          SizedBox(
-            width: 12.0,
-          ),
-          Text("This is a Custom Toast"),
-        ],
-      ),
-    );
-
-    // Custom Toast Position
-    fToast.showToast(
-        child: toast,
-        toastDuration: Duration(seconds: 2),
-        positionedToastBuilder: (context, child) {
-          return Positioned(
-            child: child,
-            top: 100.0,
-            left: 100.0,
-          );
-        });
   }
 }
