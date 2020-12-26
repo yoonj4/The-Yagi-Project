@@ -3,6 +3,7 @@ import 'package:contacts_service/contacts_service.dart';
 import 'package:hive/hive.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:the_yagi_project/models/contacts.dart';
+import 'dart:typed_data';
 
 class ContactsPage extends StatefulWidget {
 
@@ -95,14 +96,20 @@ class _ContactsPageState extends State<ContactsPage> {
                       return null;
                     }
                     else {
+                      var emergencyContact = emergencyContacts.getAt(index);
+
                       return ListTile(
-                          title: Text(emergencyContacts.getAt(index).name),
-                          subtitle: Text(emergencyContacts.getAt(index).number),
-                          onTap: () {
-                            setState( () {
-                              emergencyContacts.delete(emergencyContacts.getAt(index).name);
-                            });
-                          }
+                          title: Text(emergencyContact.name),
+                          subtitle: Text(emergencyContact.number),
+                          leading: _createLeadingAvatarEmergency(emergencyContact, contactsColorMap),
+                          trailing: IconButton(
+                            icon:Icon(Icons.backspace),
+                            onPressed: () {
+                              setState(() {
+                                emergencyContacts.delete(emergencyContacts.getAt(index).name);
+                              });
+                            },
+                          ),
                       );
                     }
                   },
@@ -126,73 +133,38 @@ class _ContactsPageState extends State<ContactsPage> {
                   itemCount: contacts.length,
                   itemBuilder: (context, index) {
                     Contact contact = contacts[index];
-                    var baseColor = contactsColorMap[contact.displayName] as dynamic;
-
-                    Color color1 = baseColor[800];
-                    Color color2 = baseColor[400];
-
                     bool alreadySaved = emergencyContacts.get(contact.displayName) != null;
-                    var avatarProfile = contact.avatar != null && contact.avatar.length > 0;
+
                     return ListTile(
                         title: Text(contact.displayName),
                         subtitle: Text(
                             contact.phones.length > 0 ? contact.phones.elementAt(0).value : ''
                         ),
-                        leading: (
-                            avatarProfile?
-                            CircleAvatar(
-                              backgroundImage: MemoryImage(contact.avatar),
-                            ) :
-                            Container(
-                                decoration: BoxDecoration(
-                                    shape: BoxShape.rectangle,
-                                    gradient: LinearGradient(
-                                        colors: [
-                                          color1,
-                                          color2,
-                                        ],
-                                        begin: Alignment.centerLeft,
-                                        end: Alignment.centerRight
+                        leading: _createLeadingAvatar(contact, contactsColorMap),
+                        trailing: IconButton(
+                          icon:Icon(alreadySaved ? Icons.favorite : Icons.favorite_border,
+                                      color: alreadySaved ? Colors.red : null),
+                          onPressed: () {
+                            setState(() {
+                              if(alreadySaved) {
+                                emergencyContacts.delete(
+                                    contact.displayName);
+                              }
+                              else{
+                                emergencyContacts.put(
+                                    contact.displayName,
+                                    EmergencyContact(
+                                        name: contact.displayName,
+                                        number: contact.phones.elementAt(0).value,
+                                        avatar: contact.avatar,
+                                        initials: contact.initials()
                                     )
-                                ),
-                                child: CircleAvatar(
-                                    child: Text(
-                                        contact.initials(),
-                                        style: TextStyle(
-                                            color: Colors.white
-                                        )
-                                    ),
-                                    backgroundColor: Colors.transparent
-                                )
-                            )
+                                );
+                              }
+                            });
+                          },
                         ),
-                        trailing: (
-                            Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  Icon(
-                                      alreadySaved ? Icons.favorite : Icons.favorite_border,
-                                      color: alreadySaved ? Colors.red : null
-                                  ),
-                                ])
-                        ),
-                        onTap: () {
-                          setState(() {
-                            if(alreadySaved) {
-                              emergencyContacts.delete(
-                                  contact.displayName);
-                            }
-                            else{
-                              emergencyContacts.put(
-                                  contact.displayName,
-                                  EmergencyContact(
-                                      name: contact.displayName,
-                                      number: contact.phones.elementAt(0).value
-                                  )
-                              );
-                            }
-                          });
-                        }
+                        onTap: () { print('THIS COULD BE SOME EXTRA BEHAVIOR'); }
                     );
                   },
                 ),
@@ -202,6 +174,51 @@ class _ContactsPageState extends State<ContactsPage> {
           ],
         ),
       ),
+    );
+  }
+}
+
+Widget _createLeadingAvatar(Contact contact, Map<String, Color> contactsColorMap) {
+  return _createLeadingAvatarHelper(contact.displayName, contactsColorMap, contact.avatar, contact.initials());
+}
+
+Widget _createLeadingAvatarEmergency(EmergencyContact contact, Map<String, Color> contactsColorMap) {
+  return _createLeadingAvatarHelper(contact.name, contactsColorMap, contact.avatar, contact.initials);
+}
+
+Widget _createLeadingAvatarHelper(String name, Map<String, Color> contactsColorMap, Uint8List avatar, String initials) {
+  var baseColor = contactsColorMap[name] as dynamic;
+
+  Color color1 = baseColor[800];
+  Color color2 = baseColor[400];
+
+  var avatarProfile = avatar != null && avatar.length > 0;
+
+  if (avatarProfile) {
+    return CircleAvatar(backgroundImage: MemoryImage(avatar));
+  }
+  else {
+    return Container(
+        decoration: BoxDecoration(
+            shape: BoxShape.rectangle,
+            gradient: LinearGradient(
+                colors: [
+                  color1,
+                  color2,
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight
+            )
+        ),
+        child: CircleAvatar(
+            child: Text(
+                initials,
+                style: TextStyle(
+                    color: Colors.white
+                )
+            ),
+            backgroundColor: Colors.transparent
+        )
     );
   }
 }
