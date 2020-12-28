@@ -1,6 +1,5 @@
-import 'package:sms/sms.dart';
+import 'package:mms/mms.dart';
 
-void sendSMS(String address, String message) {
-  SmsSender sender = new SmsSender();
-  sender.sendSms(new SmsMessage(address, message));
+void sendMMS(List<String> address, String message, String videoFilePath) {
+  Mms().sendVideoWithDefaultApp(message, videoFilePath, address);
 }

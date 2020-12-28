@@ -157,10 +157,10 @@ class _SliderWidgetState extends State<SliderWidget> {
                     test = Colors.transparent;
                   });
                   print(widget.videoPath);
-                  // widget.cameraController.startVideoRecording(widget.videoPath);
+                  widget.cameraController.startVideoRecording(widget.videoPath);
                 },
                 onChangeEnd: (double value) {
-                  // widget.cameraController.stopVideoRecording();
+                  widget.cameraController.stopVideoRecording();
                   DateTime now = DateTime.now();
                   setState(() {
                     _handleThumbRelease(value, now, context);
@@ -274,15 +274,8 @@ class _SliderWidgetState extends State<SliderWidget> {
       BuildContext context) async {
     Iterable currentEmergencyContacts = emergencyContacts.values;
     String mapsUrl = await getMapsUrl();
-    currentEmergencyContacts.forEach((emergencyContact) {
-      sendSMS(emergencyContact.number, message + " " + mapsUrl);
-    });
-
-    List<String> recipientNumbers = List<String>.from(currentEmergencyContacts
-        .map((e) => e.number)
-        .map((e) => e.replaceAll(RegExp('[^0-9]'), '')));
-    print(recipientNumbers);
-    // Mms().sendVideo(widget.videoPath, recipientNumbers);
+    Iterable<String> recipientNumbers = currentEmergencyContacts.map((e) => e.number);
+    sendMMS(recipientNumbers.toList(), message + " " + mapsUrl, widget.videoPath);
 
     _showToast(context);
 

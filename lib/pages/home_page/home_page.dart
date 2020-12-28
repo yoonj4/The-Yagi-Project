@@ -152,7 +152,6 @@ class _MyHomePageState extends State<MyHomePage> {
                         _selections[buttonIndex] =
                             (buttonIndex == index) ? true : false;
                         _cameraOn = !_cameraOn;
-                        widget.cameraController.toggleCamera();
                       }
                     });
                   },
