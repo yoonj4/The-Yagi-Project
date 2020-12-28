@@ -205,24 +205,13 @@ class _MyHomePageState extends State<MyHomePage> {
     ThreatMeterValues threatMeterValues =
         new ThreatMeterValues.nonPermanent(_warningValue, _alertValue);
 
-    var videoPath = widget.videoDirectory.path +
-        '/' +
-        DateTime.now().millisecondsSinceEpoch.toString() +
-        '.mp4';
-
     return SliderWidget(
       key: ValueKey(threatMeterValues),
       cautionHeight: _warningValue,
       highThreatHeight: _alertValue,
       cameraController: widget.cameraController,
       settings: widget.settings,
-      videoPath: videoPath,
+      videoPath: widget.videoDirectory.path,
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    widget.cameraController.dispose();
   }
 }
