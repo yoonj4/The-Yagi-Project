@@ -43,7 +43,7 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState(settings: settings);
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   _MyHomePageState({this.settings});
 
   final Settings settings;
@@ -56,12 +56,34 @@ class _MyHomePageState extends State<MyHomePage> {
   List<bool> _selections = [false, true]; // this data might be saved locally
   bool _cameraOn = true;
   FToast fToast;
+  CameraController cameraController;
 
   @override
   void initState() {
     super.initState();
     fToast = FToast();
     fToast.init(context);
+  }
+
+  @override
+  void dispose() {
+    cameraController?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // App state changed before we got the chance to initialize.
+    if (cameraController == null || !cameraController.value.isInitialized) {
+      return;
+    }
+    if (state == AppLifecycleState.inactive) {
+      cameraController?.dispose();
+    } else if (state == AppLifecycleState.resumed) {
+      if (cameraController != null) {
+        _onNewCameraSelected(cameraController.description);
+      }
+    }
   }
 
   @override
@@ -213,5 +235,17 @@ class _MyHomePageState extends State<MyHomePage> {
       settings: widget.settings,
       videoPath: widget.videoDirectory.path,
     );
+  }
+
+  void _onNewCameraSelected(CameraDescription cameraDescription) async {
+    if (cameraController != null) {
+      await cameraController.dispose();
+    }
+    cameraController = CameraController(
+      cameraDescription,
+      ResolutionPreset.low,
+    );
+
+    await cameraController.initialize();
   }
 }
