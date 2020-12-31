@@ -43,14 +43,13 @@ class SliderWidget extends StatefulWidget {
 
   @override
   _SliderWidgetState createState() => _SliderWidgetState(
-      warningValue: cautionHeight, alertValue: highThreatHeight, cameraController: cameraController);
+      warningValue: cautionHeight, alertValue: highThreatHeight,);
 }
 
-class _SliderWidgetState extends State<SliderWidget> with WidgetsBindingObserver {
+class _SliderWidgetState extends State<SliderWidget> {
   _SliderWidgetState({
     this.warningValue,
     this.alertValue,
-    this.cameraController
   }) : super();
 
   double _value = 0;
@@ -67,34 +66,11 @@ class _SliderWidgetState extends State<SliderWidget> with WidgetsBindingObserver
 
   FToast fToast;
 
-  CameraController cameraController;
-
   @override
   void initState() {
     super.initState();
     fToast = FToast();
     fToast.init(context);
-  }
-
-  @override
-  void dispose() {
-    cameraController?.dispose();
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // App state changed before we got the chance to initialize.
-    if (cameraController == null || !cameraController.value.isInitialized) {
-      return;
-    }
-    if (state == AppLifecycleState.inactive) {
-      cameraController?.dispose();
-    } else if (state == AppLifecycleState.resumed) {
-      if (cameraController != null) {
-        _onNewCameraSelected(cameraController.description);
-      }
-    }
   }
 
   @override
@@ -186,10 +162,10 @@ class _SliderWidgetState extends State<SliderWidget> with WidgetsBindingObserver
                         '.mp4';
                   });
                   print(_videoFilePath);
-                  cameraController.startVideoRecording(_videoFilePath);
+                  widget.cameraController.startVideoRecording(_videoFilePath);
                 },
                 onChangeEnd: (double value) {
-                  cameraController.stopVideoRecording();
+                  widget.cameraController.stopVideoRecording();
                   DateTime now = DateTime.now();
                   setState(() {
                     _handleThumbRelease(value, now, context);
@@ -358,17 +334,5 @@ class _SliderWidgetState extends State<SliderWidget> with WidgetsBindingObserver
             left: 100.0,
           );
         });
-  }
-
-  void _onNewCameraSelected(CameraDescription cameraDescription) async {
-    if (cameraController != null) {
-      await cameraController.dispose();
-    }
-    cameraController = CameraController(
-      cameraDescription,
-      ResolutionPreset.low,
-    );
-
-    await cameraController.initialize();
   }
 }
